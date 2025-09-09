@@ -48,7 +48,7 @@ class TestControllerTest {
 
         // given
 
-        String expectedMessage = "Hello Worlda aaa";
+        String expectedMessage = "Hello World!";
 
 
 
