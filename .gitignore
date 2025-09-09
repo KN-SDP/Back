@@ -1,7 +1,6 @@
 HELP.md
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -48,8 +47,12 @@ target/
 *.zip
 *.tar.gz
 *.log
-!gradlew
-!gradlew.bat
 
 # Application secrets
 src/main/resources/application.yml
+docker-compose.yml
+src/test/resources/application.properties
+
+!gradlew
+!gradlew.bat
+!gradle/wrapper/gradle-wrapper.jar
