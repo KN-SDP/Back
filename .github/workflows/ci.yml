@@ -2,7 +2,9 @@ name: Java CI Test
 
 on:
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "develop" ]
+  push:
+    branches: [ "develop" ]
 
 jobs:
   build:
