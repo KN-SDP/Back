@@ -18,7 +18,7 @@ class TestController {
 
     public String helloWorld() {
 
-        return "Hello Worlda test test test testCode";
+        return "Hello Worlda test testCode";
 
     }
 
