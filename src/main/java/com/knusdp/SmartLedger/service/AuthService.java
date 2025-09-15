@@ -25,13 +25,13 @@ public class AuthService {
             if(passwordEncoder.matches(rawPassword, user.getPassword())){
                 String token = JwtUtil.generateToken(String.valueOf(user.getId()));
                 LoginRequestDto userInfo = new LoginRequestDto(
-                        token,
                         user.getId(),
                         user.getEmail(),
-                        user.getPassword()
+                        user.getPassword(),
+                        token
                 );
                 System.out.println("로그인 성공: " + user.getUsername());
-                return new LoginRequestDto(token, userInfo);
+                return userInfo;
             }
         }
         return null;
