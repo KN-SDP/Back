@@ -1,0 +1,40 @@
+package com.knusdp.SmartLedger.service;
+
+import com.knusdp.SmartLedger.dto.LoginRequestDto;
+import com.knusdp.SmartLedger.entity.User;
+import com.knusdp.SmartLedger.repository.UserRepository;
+import com.knusdp.SmartLedger.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Optional;
+@RequiredArgsConstructor
+@Service
+public class AuthService {
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+
+    public LoginRequestDto login(Long userID, String rawPassword){
+        Optional<User> userOpt = userRepository.findByUserID(userID);
+        if(userOpt.isPresent()){
+            User user = userOpt.get();
+            System.out.println("DB PW: " + user.getPassword());
+            System.out.println("입력 PW: " + rawPassword);
+            if(passwordEncoder.matches(rawPassword, user.getPassword())){
+                String token = JwtUtil.generateToken(String.valueOf(user.getId()));
+                LoginRequestDto userInfo = new LoginRequestDto(
+                        token,
+                        user.getId(),
+                        user.getEmail(),
+                        user.getPassword()
+                );
+                System.out.println("로그인 성공: " + user.getUsername());
+                return new LoginRequestDto(token, userInfo);
+            }
+        }
+        return null;
+    }
+
+}
