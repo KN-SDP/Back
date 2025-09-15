@@ -1,6 +1,7 @@
 package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.LoginRequestDto;
+import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.User;
 import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.util.JwtUtil;
@@ -36,6 +37,16 @@ public class AuthService {
             }
         }
         return null;
+    }
+    public User saveUserInfo(SaveUserLoginInfoDto saveUserLoginInfoDto){
+        User user = new User();
+        user.setUserID(saveUserLoginInfoDto.getUserID());
+        user.setUserPassword(passwordEncoder.encode(saveUserLoginInfoDto.getUserPassword()));
+        user.setUserName(saveUserLoginInfoDto.getUserName());
+        user.setUserYear(saveUserLoginInfoDto.getUserYear());
+        user.setSession(saveUserLoginInfoDto.getSession());
+        user.setRole("none");
+        return userLoginInfoRepository.save(user);
     }
 
 }
