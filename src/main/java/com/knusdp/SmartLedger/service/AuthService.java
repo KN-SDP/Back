@@ -5,6 +5,7 @@ import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.User;
 import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.util.JwtUtil;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,12 +15,13 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 @RequiredArgsConstructor
 @Service
+@Builder
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginRequestDto login(Long userID, String rawPassword){
-        Optional<User> userOpt = userRepository.findByUserID(userID);
+    public LoginRequestDto login(String email, String rawPassword){
+        Optional<User> userOpt = userRepository.findByEmail(email);
         if(userOpt.isPresent()){
             User user = userOpt.get();
             System.out.println("DB PW: " + user.getPassword());
@@ -37,16 +39,6 @@ public class AuthService {
             }
         }
         return null;
-    }
-    public User saveUserInfo(SaveUserLoginInfoDto saveUserLoginInfoDto){
-        User user = new User();
-        user.setUserID(saveUserLoginInfoDto.getUserID());
-        user.setUserPassword(passwordEncoder.encode(saveUserLoginInfoDto.getUserPassword()));
-        user.setUserName(saveUserLoginInfoDto.getUserName());
-        user.setUserYear(saveUserLoginInfoDto.getUserYear());
-        user.setSession(saveUserLoginInfoDto.getSession());
-        user.setRole("none");
-        return userLoginInfoRepository.save(user);
     }
 
 }

@@ -1,5 +1,10 @@
 package com.knusdp.SmartLedger.dto;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Setter
+@Getter
 public class SaveUserLoginInfoDto {
     private String userEmail;
     private String userPassword;
