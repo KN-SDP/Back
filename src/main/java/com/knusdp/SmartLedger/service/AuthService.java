@@ -6,6 +6,7 @@ import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
