@@ -1,44 +1,40 @@
 package com.knusdp.SmartLedger.service;
 
-import com.knusdp.SmartLedger.dto.LoginRequestDto;
-import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
+import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.entity.User;
 import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.util.JwtUtil;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+
 @RequiredArgsConstructor
 @Service
-@Builder
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginRequestDto login(String email, String rawPassword){
+    public LoginResponseDto login(String email, String rawPassword) {
         Optional<User> userOpt = userRepository.findByEmail(email);
-        if(userOpt.isPresent()){
+        if (userOpt.isPresent()) {
             User user = userOpt.get();
             System.out.println("DB PW: " + user.getPassword());
             System.out.println("입력 PW: " + rawPassword);
-            if(passwordEncoder.matches(rawPassword, user.getPassword())){
+
+            if (passwordEncoder.matches(rawPassword, user.getPassword())) {
                 String token = JwtUtil.generateToken(String.valueOf(user.getId()));
-                LoginRequestDto userInfo = new LoginRequestDto(
+
+                return new LoginResponseDto(
                         user.getId(),
                         user.getEmail(),
-                        user.getPassword(),
+                        user.getUsername(),
+                        user.getNickname(),
                         token
                 );
-                System.out.println("로그인 성공: " + user.getUsername());
-                return userInfo;
             }
         }
         return null;
     }
-
 }

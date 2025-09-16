@@ -8,7 +8,7 @@ spring:
       enabled: true
   jpa:
     hibernate:
-      ddl-auto: update   # 자동 테이블 생성
+      ddl-auto: create  # 자동 테이블 생성
     show-sql: true       # 실행된 쿼리 로그 출력
     properties:
       hibernate:

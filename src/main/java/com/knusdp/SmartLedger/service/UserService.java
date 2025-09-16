@@ -22,6 +22,7 @@ public class UserService {
                 .email(dto.getUserEmail())
                 .phoneNumber(dto.getUserPhoneNumber())
                 .birth(dto.getUserBirth())
+                .nickname(dto.getUserNickname())
                 .build();
 
         return userRepository.save(user);

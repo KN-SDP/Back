@@ -1,6 +1,6 @@
 package com.knusdp.SmartLedger.controller;
 
-import com.knusdp.SmartLedger.dto.LoginRequestDto;
+import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.User;
 import com.knusdp.SmartLedger.service.AuthService;
@@ -8,10 +8,7 @@ import com.knusdp.SmartLedger.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 @RequiredArgsConstructor
@@ -28,7 +25,7 @@ public class AuthController {
         String password = loginData.get("password");
 
 
-        LoginRequestDto response = authService.login(email, password);
+        LoginResponseDto response = authService.login(email, password);
 
         if(response != null){
             return ResponseEntity.ok(response); // 로그인 성공: 사용자 정보 반환
@@ -47,3 +44,14 @@ public class AuthController {
         }
     }
 }
+//앞으로 리팩터링 포인트
+//
+//Map<String, String> 대신 LoginRequestDto 사용
+//
+//User 직접 반환 ❌ → UserResponseDto 반환 ✅
+//
+//상태 코드 정리 (회원가입 → 201 Created)
+//
+//전역 예외 처리(@RestControllerAdvice)로 예외 핸들링 분리
+//
+//JWT 붙이면 LoginResponseDto 추가
