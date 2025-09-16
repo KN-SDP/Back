@@ -20,6 +20,9 @@ public class User {
     @Column(nullable = false, unique = true, length = 50)
     private String username;  // 유저 ID
 
+    @Column(nullable = false, unique = true, length = 10)
+    private String nickname;
+
     @Column(nullable = false, length = 100)
     private String password;  // 비밀번호 (암호화 필수)
 

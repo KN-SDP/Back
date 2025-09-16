@@ -1,6 +1,6 @@
 package com.knusdp.SmartLedger.controller;
 
-import com.knusdp.SmartLedger.dto.LoginRequestDto;
+import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.User;
 import com.knusdp.SmartLedger.repository.UserRepository;
@@ -36,15 +36,16 @@ class AuthControllerTest {
                 .password(passwordEncoder.encode("123456")) // 인코딩 필요
                 .phoneNumber("01012345678")
                 .birth("20000101")
+                .nickname("테스트닉네임")
                 .build();
         userRepository.save(user);
 
         // when
-        LoginRequestDto response = authService.login("1111@gmail.com", "123456");
+        LoginResponseDto response = authService.login("1111@gmail.com", "123456");
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getUserEmail()).isEqualTo("1111@gmail.com");
+        assertThat(response.getEmail()).isEqualTo("1111@gmail.com");
         assertThat(response.getToken()).isNotBlank();
     }
 
@@ -57,11 +58,12 @@ class AuthControllerTest {
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("01012345678")
                 .birth("20000101")
+                .nickname("테스트닉네임1")
                 .build();
         userRepository.save(user);
 
         // when
-        LoginRequestDto response = authService.login("1111@gmail.com", "wrongpw");
+        LoginResponseDto response = authService.login("1111@gmail.com", "wrongpw");
 
         // then
         assertThat(response).isNull();
@@ -77,6 +79,8 @@ class AuthControllerTest {
         dto.setCheckedPassword("abcdef");
         dto.setUserPhoneNumber("01099998888");
         dto.setUserBirth("19990101");
+        dto.setUserNickname("tester");
+
 
         // when
         User saved = userService.saveUserInfo(dto);
