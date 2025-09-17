@@ -3,6 +3,7 @@ package com.knusdp.SmartLedger.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,8 +33,8 @@ public class User {
     @Column(nullable = false, unique = true ,length = 13)
     private String phoneNumber; //전화번호
 
-    @Column(nullable = false, length = 8)
-    private String birth; // 생년월일
+    @Column(nullable = false)
+    private LocalDate birth; // 생년월일
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
