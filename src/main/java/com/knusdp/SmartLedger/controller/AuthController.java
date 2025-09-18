@@ -48,7 +48,7 @@ public class AuthController {
 //
 //Map<String, String> 대신 LoginRequestDto 사용
 //
-//User 직접 반환 ❌ → UserResponseDto 반환 ✅
+//User 직접 반환 ❌ → UserResponseDto 반환✅
 //
 //상태 코드 정리 (회원가입 → 201 Created)
 //
