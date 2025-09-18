@@ -30,7 +30,7 @@ public class AuthController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SaveUserLoginInfoDto dto) {
         try {
             User saved = userService.saveUserInfo(dto);
