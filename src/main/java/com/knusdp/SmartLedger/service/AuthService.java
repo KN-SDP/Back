@@ -16,14 +16,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginResponseDto login(String email, String checkdPassword) {
+    public LoginResponseDto login(String email, String checkedPassword) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
             System.out.println("DB PW: " + user.getPassword());
-            System.out.println("입력 PW: " + checkdPassword);
+            System.out.println("입력 PW: " + checkedPassword);
 
-            if (passwordEncoder.matches(checkdPassword, user.getPassword())) {
+            if (passwordEncoder.matches(checkedPassword, user.getPassword())) {
                 String token = JwtUtil.generateToken(String.valueOf(user.getId()));
 
                 return new LoginResponseDto(
