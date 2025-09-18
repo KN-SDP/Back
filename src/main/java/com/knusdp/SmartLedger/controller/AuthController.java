@@ -1,5 +1,6 @@
 package com.knusdp.SmartLedger.controller;
 
+import com.knusdp.SmartLedger.dto.LoginRequestDto; // 👈 import 추가
 import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.User;
@@ -7,10 +8,8 @@ import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/users")
@@ -20,15 +19,12 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> loginData){
-        String email = loginData.get("email");
-        String password = loginData.get("password");
+    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto){
 
-
-        LoginResponseDto response = authService.login(email, password);
+        LoginResponseDto response = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
 
         if(response != null){
-            return ResponseEntity.ok(response); // 로그인 성공: 사용자 정보 반환
+            return ResponseEntity.ok(response);
         } else {
             return ResponseEntity.status(401).body("로그인 실패");
         }
@@ -38,7 +34,7 @@ public class AuthController {
     public ResponseEntity<?> signUp(@RequestBody SaveUserLoginInfoDto dto) {
         try {
             User saved = userService.saveUserInfo(dto);
-            return ResponseEntity.ok(saved); // 성공 시 저장된 유저 반환
+            return ResponseEntity.ok(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
