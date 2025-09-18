@@ -11,6 +11,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -26,15 +30,17 @@ class AuthControllerTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+
     @Test
     void login_success() {
         // given
         User user = User.builder()
                 .username("jiwoo")
                 .email("1111@gmail.com")
-                .password(passwordEncoder.encode("123456")) // 인코딩 필요
+                .password(passwordEncoder.encode("123456"))
                 .phoneNumber("01012345678")
-                .birth("20000101")
+                .birth(LocalDate.parse("20000101", formatter)) // LocalDate로 변환
                 .nickname("테스트닉네임")
                 .build();
         userRepository.save(user);
@@ -56,7 +62,7 @@ class AuthControllerTest {
                 .email("1111@gmail.com")
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("01012345678")
-                .birth("20000101")
+                .birth(LocalDate.parse("20000101", formatter))
                 .nickname("테스트닉네임1")
                 .build();
         userRepository.save(user);
@@ -77,8 +83,9 @@ class AuthControllerTest {
         dto.setUserPassword("abcdef");
         dto.setCheckedPassword("abcdef");
         dto.setUserPhoneNumber("01099998888");
-        dto.setUserBirth("19990101");
+        dto.setUserBirth("1999-01-01");
         dto.setUserNickname("tester");
+
         // when
         User saved = userService.saveUserInfo(dto);
 
@@ -86,7 +93,7 @@ class AuthControllerTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getEmail()).isEqualTo("test@test.com");
         assertThat(passwordEncoder.matches("abcdef", saved.getPassword())).isTrue();
-
+        assertThat(saved.getBirth()).isEqualTo(LocalDate.of(1999, 1, 1));
     }
 
 }

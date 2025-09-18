@@ -7,6 +7,8 @@ import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+
 @RequiredArgsConstructor
 @Getter
 @Setter
@@ -16,14 +18,12 @@ public class UserService {
    private final UserRepository userRepository;
    private final PasswordEncoder passwordEncoder;
     public User saveUserInfo(SaveUserLoginInfoDto dto){
-
-        User user = new User().builder()
-
+        User user = User.builder()
                 .username(dto.getUserName())
                 .password(passwordEncoder.encode(dto.getUserPassword()))
                 .email(dto.getUserEmail())
                 .phoneNumber(dto.getUserPhoneNumber())
-                .birth(dto.getUserBirth())
+                .birth(LocalDate.parse(dto.getUserBirth()))
                 .nickname(dto.getUserNickname())
                 .build();
 

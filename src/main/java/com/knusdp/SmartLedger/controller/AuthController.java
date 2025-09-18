@@ -26,7 +26,7 @@ public class AuthController {
         if(response != null){
             return ResponseEntity.ok(response);
         } else {
-            return ResponseEntity.status(401).body("로그인 실패");
+            return ResponseEntity.status(401).body("로그인실패");
         }
     }
 
