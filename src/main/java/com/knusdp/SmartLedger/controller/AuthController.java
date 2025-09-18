@@ -30,7 +30,7 @@ public class AuthController {
         if(response != null){
             return ResponseEntity.ok(response); // 로그인 성공: 사용자 정보 반환
         } else {
-            return ResponseEntity.status(401).body("로그인실패");
+            return ResponseEntity.status(401).body("로그인 실패");
         }
     }
 

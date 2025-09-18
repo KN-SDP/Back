@@ -16,7 +16,9 @@ public class UserService {
    private final UserRepository userRepository;
    private final PasswordEncoder passwordEncoder;
     public User saveUserInfo(SaveUserLoginInfoDto dto){
+
         User user = new User().builder()
+
                 .username(dto.getUserName())
                 .password(passwordEncoder.encode(dto.getUserPassword()))
                 .email(dto.getUserEmail())

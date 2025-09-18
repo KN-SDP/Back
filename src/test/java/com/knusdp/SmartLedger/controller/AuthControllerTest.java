@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
@@ -80,8 +79,6 @@ class AuthControllerTest {
         dto.setUserPhoneNumber("01099998888");
         dto.setUserBirth("19990101");
         dto.setUserNickname("tester");
-
-
         // when
         User saved = userService.saveUserInfo(dto);
 
@@ -89,5 +86,7 @@ class AuthControllerTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getEmail()).isEqualTo("test@test.com");
         assertThat(passwordEncoder.matches("abcdef", saved.getPassword())).isTrue();
+
     }
+
 }

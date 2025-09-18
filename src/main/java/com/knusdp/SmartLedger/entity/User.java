@@ -35,6 +35,7 @@ public class User {
     @Column(nullable = false, length = 8)
     private String birth; // 생년월일
 
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
