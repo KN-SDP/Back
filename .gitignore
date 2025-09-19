@@ -56,3 +56,5 @@ docker-compose.yml
 !gradlew
 !gradlew.bat
 !gradle/wrapper/gradle-wrapper.jar
+
+*.pem

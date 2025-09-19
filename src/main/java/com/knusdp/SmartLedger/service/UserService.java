@@ -18,10 +18,12 @@ import java.time.LocalDate;
 @Builder
 @Service
 public class UserService {
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    private final CryptoUtil cryptoUtil;
+   private final UserRepository userRepository;
+   private final PasswordEncoder passwordEncoder;
+
+   private final CryptoUtil cryptoUtil;
+
 
     public Member saveUserInfo(SaveUserLoginInfoDto dto){
         if (!dto.getUserPassword().equals(dto.getCheckedPassword())) {
@@ -30,6 +32,7 @@ public class UserService {
 
         // 이메일 중복 검사
         if (userRepository.findByEmail(dto.getUserEmail()).isPresent()) {
+
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
