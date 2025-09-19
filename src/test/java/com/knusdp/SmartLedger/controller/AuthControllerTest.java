@@ -2,11 +2,13 @@ package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
-import com.knusdp.SmartLedger.entity.User;
+import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.UserService;
+import com.knusdp.SmartLedger.util.CryptoUtil;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.DisplayName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,21 +31,24 @@ class AuthControllerTest {
     private AuthService authService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private CryptoUtil cryptoUtil;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Test
+    @DisplayName("로그인 성공")
     void login_success() {
         // given
-        User user = User.builder()
+        Member member = Member.builder()
                 .username("jiwoo")
                 .email("1111@gmail.com")
                 .password(passwordEncoder.encode("123456"))
-                .phoneNumber("01012345678")
+                .phoneNumber(cryptoUtil.encrypt("01012345678")) // 암호화된 폰번호
                 .birth(LocalDate.parse("20000101", formatter)) // LocalDate로 변환
                 .nickname("테스트닉네임")
                 .build();
-        userRepository.save(user);
+        userRepository.save(member);
 
         // when
         LoginResponseDto response = authService.login("1111@gmail.com", "123456");
@@ -55,17 +60,18 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("로그인 실패 - 잘못된 비밀번호")
     void login_fail_wrong_password() {
         // given
-        User user = User.builder()
+        Member member = Member.builder()
                 .username("jiwoo")
                 .email("1111@gmail.com")
                 .password(passwordEncoder.encode("123456"))
-                .phoneNumber("01012345678")
+                .phoneNumber(cryptoUtil.encrypt("01012345678")) // 암호화된 폰번호
                 .birth(LocalDate.parse("20000101", formatter))
                 .nickname("테스트닉네임1")
                 .build();
-        userRepository.save(user);
+        userRepository.save(member);
 
         // when
         LoginResponseDto response = authService.login("1111@gmail.com", "wrongpw");
@@ -75,6 +81,7 @@ class AuthControllerTest {
     }
 
     @Test
+    @DisplayName("회원가입 성공 및 전화번호 암호화 검증")
     void signUp_success() {
         // given
         SaveUserLoginInfoDto dto = new SaveUserLoginInfoDto();
@@ -87,13 +94,17 @@ class AuthControllerTest {
         dto.setUserNickname("tester");
 
         // when
-        User saved = userService.saveUserInfo(dto);
+        Member saved = userService.saveUserInfo(dto);
 
         // then
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getEmail()).isEqualTo("test@test.com");
         assertThat(passwordEncoder.matches("abcdef", saved.getPassword())).isTrue();
         assertThat(saved.getBirth()).isEqualTo(LocalDate.of(1999, 1, 1));
+
+        // 전화번호 암호화 검증
+        String decryptedPhoneNumber = cryptoUtil.decrypt(saved.getPhoneNumber());
+        assertThat(decryptedPhoneNumber).isEqualTo(dto.getUserPhoneNumber());
     }
 
 }

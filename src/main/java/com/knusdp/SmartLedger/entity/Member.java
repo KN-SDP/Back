@@ -8,12 +8,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@Setter
+@Setter // 개발과정에서만 사용
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "users")
-public class User {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +21,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 50)
     private String username;  // 유저 ID
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, unique = true, length = 10)
     private String nickname;
 
     @Column(nullable = false, length = 100)
@@ -31,8 +30,8 @@ public class User {
     @Column(nullable = false, unique = true, length = 100)
     private String email;     // 이메일
 
-    @Column(nullable = false, unique = true ,length = 13)
-    private String phoneNumber; //전화번호
+    @Column(nullable = false, unique = true, length = 255)
+    private String phoneNumber; //전화번호 (암호화)
 
     @Column(nullable = false)
     private LocalDate birth; // 생년월일

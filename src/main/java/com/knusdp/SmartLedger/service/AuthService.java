@@ -1,7 +1,7 @@
 package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.LoginResponseDto;
-import com.knusdp.SmartLedger.entity.User;
+import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -16,21 +16,21 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public LoginResponseDto login(String email, String rawPassword) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
+    public LoginResponseDto login(String email, String checkedPassword) {
+        Optional<Member> userOpt = userRepository.findByEmail(email);
         if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            System.out.println("DB PW: " + user.getPassword());
-            System.out.println("입력 PW: " + rawPassword);
+            Member member = userOpt.get();
+            System.out.println("DB PW: " + member.getPassword());
+            System.out.println("입력 PW: " + checkedPassword);
 
-            if (passwordEncoder.matches(rawPassword, user.getPassword())) {
-                String token = JwtUtil.generateToken(String.valueOf(user.getId()));
+            if (passwordEncoder.matches(checkedPassword, member.getPassword())) {
+                String token = JwtUtil.generateToken(String.valueOf(member.getId()));
 
                 return new LoginResponseDto(
-                        user.getId(),
-                        user.getEmail(),
-                        user.getUsername(),
-                        user.getNickname(),
+                        member.getId(),
+                        member.getEmail(),
+                        member.getUsername(),
+                        member.getNickname(),
                         token
                 );
             }
