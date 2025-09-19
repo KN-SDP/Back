@@ -1,14 +1,15 @@
 package com.knusdp.SmartLedger.controller;
 
-import com.knusdp.SmartLedger.dto.LoginRequestDto; // 👈 import 추가
-import com.knusdp.SmartLedger.dto.LoginResponseDto;
-import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
+import com.knusdp.SmartLedger.dto.*;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
@@ -37,6 +38,43 @@ public class AuthController {
             return ResponseEntity.ok(saved);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+    @PostMapping("/recover-id")
+    public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
+        try {
+            Optional<String> emailOpt = authService.findId(
+                    request.getName(),
+                    request.getPhoneNum(),
+                    request.getBirth()
+            );
+
+            if(emailOpt.isPresent()){
+                FindIdResponseDto responseDto = new FindIdResponseDto(
+                        200,
+                        "가입된 이메일을 확인했습니다.",
+                        emailOpt.get(),
+                        request.getBirth()
+                );
+                return ResponseEntity.ok(responseDto);
+            } else {
+                // 사용자 없음 → 404 처리
+                ErrorResponseDto error = new ErrorResponseDto(
+                        404,
+                        "UserNotFound",
+                        "일치하는 계정을 찾을 수 없습니다."
+                );
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+            }
+
+        } catch(Exception e) {
+            // 서버 오류 → 500 처리
+            ErrorResponseDto error = new ErrorResponseDto(
+                    500,
+                    "InternalServerError",
+                    "서버에 문제가 발생했습니다."
+            );
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
 }

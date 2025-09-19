@@ -21,7 +21,7 @@ public class Member {
     @Column(nullable = false, unique = true, length = 50)
     private String username;  // 유저 ID
 
-    @Column(nullable = false, unique = true, length = 10)
+    @Column(nullable = false, unique = true, length = 50)
     private String nickname;
 
     @Column(nullable = false, length = 100)

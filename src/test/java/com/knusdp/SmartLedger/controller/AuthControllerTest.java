@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -106,5 +107,32 @@ class AuthControllerTest {
         String decryptedPhoneNumber = cryptoUtil.decrypt(saved.getPhoneNumber());
         assertThat(decryptedPhoneNumber).isEqualTo(dto.getUserPhoneNumber());
     }
+    @Test
+    @DisplayName("계정 복구 - 성공")
+    void recoverId_success() {
+        // 회원 저장
+        Member member = Member.builder()
+                .username("jiwoo")
+                .email("recover@test.com")
+                .password(passwordEncoder.encode("123456"))
+                .phoneNumber(cryptoUtil.encrypt("01011112222"))
+                .birth(LocalDate.parse("19950101", formatter))
+                .nickname("recoverTest")
+                .build();
+        userRepository.save(member);
 
+        // Service 호출
+        Optional<String> emailOpt = authService.findId("jiwoo", "01011112222", "1995-01-01");
+
+        assertThat(emailOpt).isPresent();
+        assertThat(emailOpt.get()).isEqualTo("recover@test.com");
+    }
+
+    @Test
+    @DisplayName("계정 복구 - 사용자 없음")
+    void recoverId_userNotFound() {
+        Optional<String> emailOpt = authService.findId("nonexistent", "01000000000", "2000-01-01");
+
+        assertThat(emailOpt).isNotPresent();
+    }
 }

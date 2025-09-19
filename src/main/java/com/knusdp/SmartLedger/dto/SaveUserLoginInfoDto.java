@@ -9,6 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
+//회원가입 정보 받기 dto
 public class SaveUserLoginInfoDto {
     private String userEmail;
     private String userPassword;
