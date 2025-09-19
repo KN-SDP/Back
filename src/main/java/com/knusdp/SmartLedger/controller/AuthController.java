@@ -5,10 +5,10 @@ import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.UserService;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -40,6 +40,7 @@ public class AuthController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @PostMapping("/recover-id")
     public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
         try {
