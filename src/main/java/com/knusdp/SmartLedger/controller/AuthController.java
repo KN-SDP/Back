@@ -45,7 +45,7 @@ public class AuthController {
     public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
         try {
             Optional<String> emailOpt = authService.findId(
-                    request.getName(),
+                    request.getUsername(),
                     request.getPhoneNum(),
                     request.getBirth()
             );

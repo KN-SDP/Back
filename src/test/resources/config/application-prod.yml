@@ -1,6 +1,4 @@
 spring:
-  profiles:
-    active: dev
   jackson:
     time-zone: Asia/Seoul
   mvc:
@@ -8,20 +6,22 @@ spring:
       enabled: true
   jpa:
     hibernate:
-      ddl-auto: create  # 자동 테이블 생성
+      ddl-auto: update   # 자동 테이블 생성
     show-sql: true       # 실행된 쿼리 로그 출력
     properties:
       hibernate:
         format_sql: true
 
   application:
-    name: SmartLedger
+    name: smartLedger
   datasource:
-    url: jdbc:mysql://43.202.209.189:3306/smartledger
-    username: knusdp
-    password: knusdp
+    url: jdbc:mysql://43.202.209.189:3306/smartledger?serverTimezone=Asia/Seoul
+    username: smartknu3707
+    password: smartknu3707
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+crypto:
+  secret-key: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+  init-vector: a1b2c3d4e5f6a1b2
 logging:
   level:
     org.hibernate.SQL: debug
