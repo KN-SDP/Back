@@ -49,9 +49,9 @@ target/
 *.log
 
 # Application secrets
-src/main/resources/application.yml
+src/main/resources/config/application.yml
+src/main/resources/config/application-prod.yml
 docker-compose.yml
-src/test/resources/application.properties
 
 !gradlew
 !gradlew.bat
