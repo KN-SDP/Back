@@ -14,4 +14,6 @@ public class CryptoProperties {
 
     public String getInitVector() { return initVector; }
     public void setInitVector(String initVector) { this.initVector = initVector; }
+
 }
+
