@@ -21,7 +21,9 @@ public class Member {
     @Column(nullable = false, unique = true, length = 50)
     private String username;  // 유저 ID
 
-    @Column(nullable = false, unique = true, length = 10)
+
+    @Column(nullable = false, unique = true, length = 50)
+
     private String nickname;
 
     @Column(nullable = false, length = 100)
@@ -30,8 +32,10 @@ public class Member {
     @Column(nullable = false, unique = true, length = 100)
     private String email;     // 이메일
 
-    @Column(nullable = false, unique = true ,length = 13)
-    private String phoneNumber; //전화번호
+
+    @Column(nullable = false, unique = true, length = 255)
+    private String phoneNumber; //전화번호 (암호화)
+
 
     @Column(nullable = false)
     private LocalDate birth; // 생년월일

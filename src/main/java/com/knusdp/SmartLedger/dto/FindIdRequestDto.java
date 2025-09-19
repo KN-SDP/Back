@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDto {
-    private Long id;
-    private String email;
-    private String username;
-    private String nickname;
-
+//아이디 찾기 요청받기 dto
+public class FindIdRequestDto {
+    private String name;
+    private String phoneNum;
+    private String birth;
 }
