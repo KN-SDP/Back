@@ -10,7 +10,7 @@ import com.knusdp.SmartLedger.service.UserService;
 import com.knusdp.SmartLedger.util.CryptoUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,9 +44,7 @@ class AuthControllerTest {
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     @Test
-
     @DisplayName("로그인 성공")
-
     void login_success() {
         // given
         Member member = Member.builder()
