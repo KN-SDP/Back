@@ -51,6 +51,7 @@ public class AuthController {
             System.out.println("------------------------------------");
             Optional<String> emailOpt = authService.findId(
                     request.getUsername(),
+
                     request.getPhoneNum(),
                     request.getBirth()
             );

@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 //아이디 찾기 요청받기 dto
 public class FindIdRequestDto {
     private String username;
+
     private String phoneNum;
     private String birth;
 }
