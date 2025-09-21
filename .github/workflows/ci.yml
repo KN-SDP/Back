@@ -22,7 +22,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Build with Gradle
-        run: ./gradlew build
         env:
-          INIT_VECTOR: ${{ secrets.CRYPTO_INIT_VECTOR }}
-          SECRET_KEY: ${{ secrets.CRYPTO_SECRET_KEY }}
+          CRYPTO_KEY: ${{ secrets.CRYPTO_KEY }}
+          CRYPTO_INIT_VECTOR: ${{ secrets.CRYPTO_INIT_VECTOR }}
+        run: ./gradlew build

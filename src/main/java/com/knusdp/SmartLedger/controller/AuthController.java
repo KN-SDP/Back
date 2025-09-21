@@ -44,6 +44,11 @@ public class AuthController {
     @PostMapping("/recover-id")
     public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
         try {
+            System.out.println("--- AuthController findId 메소드 진입 ---");
+            System.out.println("서버가 받은 username: " + request.getUsername());
+            System.out.println("서버가 받은 phoneNum: " + request.getPhoneNum());
+            System.out.println("서버가 받은 birth: " + request.getBirth());
+            System.out.println("------------------------------------");
             Optional<String> emailOpt = authService.findId(
                     request.getUsername(),
                     request.getPhoneNum(),
