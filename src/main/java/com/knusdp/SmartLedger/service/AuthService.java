@@ -51,4 +51,5 @@ public class AuthService {
         return userRepository.findByUsernameAndPhoneNumberAndBirth(username, encryptedPhone, birthDate)
                 .map(Member::getEmail);
     }
+
 }
