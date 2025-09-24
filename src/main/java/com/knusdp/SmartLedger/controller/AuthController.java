@@ -20,63 +20,47 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto){
-
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
+        // 로그인 실패 시 서비스에서 예외를 던지므로, 컨트롤러는 성공 로직만 처리합니다.
         LoginResponseDto response = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
-
-        if(response != null){
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(401).body("로그인실패");
-        }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody SaveUserLoginInfoDto dto) {
-        try {
-            Member saved = userService.saveUserInfo(dto);
-            return ResponseEntity.ok(saved);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<UserResponseDto> signUp(@RequestBody SaveUserLoginInfoDto dto) {
+        // try-catch가 사라졌습니다. 모든 예외는 GlobalExceptionHandler가 처리합니다.
+        Member savedMember = userService.saveUserInfo(dto);
+
+        // 엔티티 대신 필요한 정보만 담은 DTO로 변환하여 반환합니다.
+        UserResponseDto responseDto = new UserResponseDto(
+                savedMember.getId(),
+                savedMember.getEmail(),
+                savedMember.getUsername(),
+                savedMember.getNickname()
+        );
+
+        // 리소스 생성 성공을 의미하는 201 Created 상태 코드를 반환합니다.
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @PostMapping("/recover-id")
-    public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
-        try {
-            Optional<String> emailOpt = authService.findId(
-                    request.getName(),
-                    request.getPhoneNum(),
-                    request.getBirth()
-            );
+    public ResponseEntity<FindIdResponseDto> findId(@RequestBody FindIdRequestDto request) {
+        // try-catch와 if-else가 모두 사라졌습니다.
+        // 서비스에서 사용자를 찾지 못하면 UserNotFoundException을 던집니다.
+        String foundEmail = authService.findId(
+                request.getName(),
+                request.getPhoneNum(),
+                request.getBirth()
+        );
 
-            if(emailOpt.isPresent()){
-                FindIdResponseDto responseDto = new FindIdResponseDto(
-                        200,
-                        "가입된 이메일을 확인했습니다.",
-                        emailOpt.get(),
-                        request.getBirth()
-                );
-                return ResponseEntity.ok(responseDto);
-            } else {
-                // 사용자 없음 → 404 처리
-                ErrorResponseDto error = new ErrorResponseDto(
-                        404,
-                        "UserNotFound",
-                        "일치하는 계정을 찾을 수 없습니다."
-                );
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-            }
+        FindIdResponseDto responseDto = new FindIdResponseDto(
+                HttpStatus.OK.value(),
+                "가입된 이메일을 확인했습니다.",
+                foundEmail,
+                request.getBirth()
+        );
 
-        } catch(Exception e) {
-            // 서버 오류 → 500 처리
-            ErrorResponseDto error = new ErrorResponseDto(
-                    500,
-                    "InternalServerError",
-                    "서버에 문제가 발생했습니다."
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+        return ResponseEntity.ok(responseDto);
     }
 }
 //앞으로 리팩터링 포인트
