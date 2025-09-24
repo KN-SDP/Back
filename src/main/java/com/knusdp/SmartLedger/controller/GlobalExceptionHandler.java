@@ -2,6 +2,7 @@ package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.ErrorResponseDto;
 import com.knusdp.SmartLedger.exception.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -55,5 +56,14 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                409, // 409
+                "DATA_INTEGRITY_VIOLATION",
+                "이미 사용 중인 정보가 포함되어 있습니다. (예: 이름, 이메일, 닉네임 등)"
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 }
