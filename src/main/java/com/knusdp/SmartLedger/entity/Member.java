@@ -18,13 +18,12 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     private String username;  // 유저 ID
 
 
     @Column(nullable = false, unique = true, length = 50)
-
-    private String nickname;
+    private String nickname;    //닉네임
 
     @Column(nullable = false, length = 100)
     private String password;  // 비밀번호 (암호화 필수)
