@@ -58,6 +58,10 @@ jobs:
           key: ${{secrets.AWS_EC2_PRIVATEKEY}}
           script: |
             cd ~/sdp
+            
+            echo "CRYPTO_KEY=${{ secrets.CRYPTO_KEY }}" > .env
+            echo "CRYPTO_INIT_VECTOR=${{ secrets.CRYPTO_INIT_VECTOR }}" >> .env
+            
             if [ "${{ github.ref_name }}" == "main" ]; then
               sudo docker compose pull spring-app
               sudo docker compose up -d spring-app
