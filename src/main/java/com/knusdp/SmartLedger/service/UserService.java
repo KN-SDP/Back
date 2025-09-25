@@ -32,7 +32,6 @@ public class UserService {
         if (!dto.getUserPassword().equals(dto.getCheckedPassword())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
-        // 이메일 중복 검사
         if (userRepository.findByEmail(dto.getUserEmail()).isPresent()) {
             throw new EmailDuplicateException("이미 등록된 이메일입니다.");
         }
@@ -44,14 +43,11 @@ public class UserService {
         }
         String encryptedPhoneNumber = cryptoUtil.encrypt(dto.getUserPhoneNumber());
 
-
         Member member = Member.builder()
                 .username(dto.getUserName())
                 .password(passwordEncoder.encode(dto.getUserPassword()))
                 .email(dto.getUserEmail())
-
                 .phoneNumber(encryptedPhoneNumber)
-
                 .birth(LocalDate.parse(dto.getUserBirth()))
                 .nickname(dto.getUserNickname())
                 .build();
