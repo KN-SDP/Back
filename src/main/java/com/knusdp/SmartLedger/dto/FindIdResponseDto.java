@@ -10,10 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 //이메일(아이디정보) 리턴하는 dto
 public class FindIdResponseDto {
-
     private int status_code;
     private String message;
     private String email;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private String birth;
 }

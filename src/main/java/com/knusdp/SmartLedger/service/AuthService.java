@@ -34,22 +34,10 @@ public class AuthService {
                 String token = JwtUtil.generateToken(String.valueOf(member.getId()));
 
                 return new LoginResponseDto(
-                        member.getId(),
-                        member.getEmail(),
-                        member.getUsername(),
-                        member.getNickname(),
                         token
                 );
             }
         }
         return null;
     }
-
-    public Optional<String> findId(String username, String phoneNum, String birth) {
-        LocalDate birthDate = LocalDate.parse(birth);
-        String encryptedPhone = cryptoUtil.encrypt(phoneNum);
-        return userRepository.findByUsernameAndPhoneNumberAndBirth(username, encryptedPhone, birthDate)
-                .map(Member::getEmail);
-    }
-
 }

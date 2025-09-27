@@ -5,6 +5,7 @@ import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.service.AuthService;
+import com.knusdp.SmartLedger.service.FindInFoService;
 import com.knusdp.SmartLedger.service.UserService;
 import com.knusdp.SmartLedger.util.CryptoUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,11 +37,13 @@ class AuthControllerTest {
     private AuthService authService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private FindInFoService findInFoService;
 
     @MockBean
     private CryptoUtil cryptoUtil;
 
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @BeforeEach
     void setup() {
@@ -59,6 +62,8 @@ class AuthControllerTest {
         });
     }
 
+    // AuthControllerTest.java
+
     @Test
     @DisplayName("로그인 성공")
     void login_success() {
@@ -68,7 +73,7 @@ class AuthControllerTest {
                 .email("1111@gmail.com")
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber(cryptoUtil.encrypt("01012345678"))
-                .birth(LocalDate.parse("20000101", formatter))
+                .birth(LocalDate.parse("2000-01-01", formatter))
                 .nickname("테스트닉네임")
                 .build();
         userRepository.save(member);
@@ -77,9 +82,9 @@ class AuthControllerTest {
         LoginResponseDto response = authService.login("1111@gmail.com", "123456");
 
         // then
+        // 이제 DTO가 null이 아니고, accessToken 필드가 비어있지 않은지만 확인합니다.
         assertThat(response).isNotNull();
-        assertThat(response.getEmail()).isEqualTo("1111@gmail.com");
-        assertThat(response.getToken()).isNotBlank();
+        assertThat(response.getAccess_token()).isNotBlank();
     }
 
     @Test
@@ -91,7 +96,7 @@ class AuthControllerTest {
                 .email("1111@gmail.com")
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber(cryptoUtil.encrypt("01012345678"))
-                .birth(LocalDate.parse("20000101", formatter))
+                .birth(LocalDate.parse("2000-01-01", formatter))
                 .nickname("테스트닉네임1")
                 .build();
         userRepository.save(member);
@@ -139,13 +144,13 @@ class AuthControllerTest {
                 .email("recover@test.com")
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber(cryptoUtil.encrypt("01011112222"))
-                .birth(LocalDate.parse("19950101", formatter))
+                .birth(LocalDate.parse("1995-01-01", formatter))
                 .nickname("recoverTest")
                 .build();
         userRepository.save(member);
 
         // Service 호출
-        Optional<String> emailOpt = authService.findId("jiwoo", "01011112222", "1995-01-01");
+        Optional<String> emailOpt = findInFoService.findId("jiwoo", "01011112222", "1995-01-01");
 
         assertThat(emailOpt).isPresent();
         assertThat(emailOpt.get()).isEqualTo("recover@test.com");
@@ -154,7 +159,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("계정 복구 - 사용자 없음")
     void recoverId_userNotFound() {
-        Optional<String> emailOpt = authService.findId("nonexistent", "01000000000", "2000-01-01");
+        Optional<String> emailOpt = findInFoService.findId("nonexistent", "01000000000", "2000-01-01");
 
         assertThat(emailOpt).isNotPresent();
     }

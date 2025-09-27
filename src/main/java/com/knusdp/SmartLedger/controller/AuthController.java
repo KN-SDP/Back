@@ -3,6 +3,7 @@ package com.knusdp.SmartLedger.controller;
 import com.knusdp.SmartLedger.dto.*;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.service.AuthService;
+import com.knusdp.SmartLedger.service.FindInFoService;
 import com.knusdp.SmartLedger.service.UserService;
 import lombok.RequiredArgsConstructor;
 
@@ -18,6 +19,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final FindInFoService findInFoService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto){
@@ -34,8 +36,8 @@ public class AuthController {
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SaveUserLoginInfoDto dto) {
         try {
-            Member saved = userService.saveUserInfo(dto);
-            return ResponseEntity.ok(saved);
+            userService.saveUserInfo(dto);
+            return ResponseEntity.ok("가입이 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -44,7 +46,7 @@ public class AuthController {
     @PostMapping("/recover-id")
     public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
         try {
-            Optional<String> emailOpt = authService.findId(
+            Optional<String> emailOpt = findInFoService.findId(
                     request.getName(),
                     request.getPhoneNum(),
                     request.getBirth()
@@ -54,8 +56,7 @@ public class AuthController {
                 FindIdResponseDto responseDto = new FindIdResponseDto(
                         200,
                         "가입된 이메일을 확인했습니다.",
-                        emailOpt.get(),
-                        request.getBirth()
+                        emailOpt.get()
                 );
                 return ResponseEntity.ok(responseDto);
             } else {

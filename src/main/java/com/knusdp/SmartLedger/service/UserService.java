@@ -20,7 +20,6 @@ import java.time.LocalDate;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
     private final CryptoUtil cryptoUtil;
 
     public Member saveUserInfo(SaveUserLoginInfoDto dto){
@@ -40,9 +39,7 @@ public class UserService {
                 .username(dto.getUserName())
                 .password(passwordEncoder.encode(dto.getUserPassword()))
                 .email(dto.getUserEmail())
-
                 .phoneNumber(encryptedPhoneNumber)
-
                 .birth(LocalDate.parse(dto.getUserBirth()))
                 .nickname(dto.getUserNickname())
                 .build();
