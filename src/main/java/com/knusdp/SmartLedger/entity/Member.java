@@ -49,4 +49,5 @@ public class Member {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
 }

@@ -20,63 +20,41 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto){
-
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
         LoginResponseDto response = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
-
-        if(response != null){
-            return ResponseEntity.ok(response);
-        } else {
-            return ResponseEntity.status(401).body("로그인실패");
-        }
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@RequestBody SaveUserLoginInfoDto dto) {
-        try {
-            Member saved = userService.saveUserInfo(dto);
-            return ResponseEntity.ok(saved);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<UserResponseDto> signUp(@RequestBody SaveUserLoginInfoDto dto) {
+        Member savedMember = userService.saveUserInfo(dto);
+
+        UserResponseDto responseDto = new UserResponseDto(
+                savedMember.getId(),
+                savedMember.getEmail(),
+                savedMember.getUsername(),
+                savedMember.getNickname()
+        );
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
     @PostMapping("/recover-id")
-    public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
-        try {
-            Optional<String> emailOpt = authService.findId(
-                    request.getName(),
-                    request.getPhoneNum(),
-                    request.getBirth()
-            );
+    public ResponseEntity<FindIdResponseDto> findId(@RequestBody FindIdRequestDto request) {
+        String foundEmail = authService.findId(
+                request.getName(),
+                request.getPhoneNum(),
+                request.getBirth()
+        );
 
-            if(emailOpt.isPresent()){
-                FindIdResponseDto responseDto = new FindIdResponseDto(
-                        200,
-                        "가입된 이메일을 확인했습니다.",
-                        emailOpt.get(),
-                        request.getBirth()
-                );
-                return ResponseEntity.ok(responseDto);
-            } else {
-                // 사용자 없음 → 404 처리
-                ErrorResponseDto error = new ErrorResponseDto(
-                        404,
-                        "UserNotFound",
-                        "일치하는 계정을 찾을 수 없습니다."
-                );
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-            }
+        FindIdResponseDto responseDto = new FindIdResponseDto(
+                HttpStatus.OK.value(),
+                "가입된 이메일을 확인했습니다.",
+                foundEmail,
+                request.getBirth()
+        );
 
-        } catch(Exception e) {
-            // 서버 오류 → 500 처리
-            ErrorResponseDto error = new ErrorResponseDto(
-                    500,
-                    "InternalServerError",
-                    "서버에 문제가 발생했습니다."
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+        return ResponseEntity.ok(responseDto);
     }
 }
 //앞으로 리팩터링 포인트
