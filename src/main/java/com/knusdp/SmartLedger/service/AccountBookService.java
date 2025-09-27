@@ -2,9 +2,14 @@ package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.CreateAccountDto;
 import com.knusdp.SmartLedger.entity.AccountBook;
+import com.knusdp.SmartLedger.entity.AccountCategory;
+import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.exception.InvalidAmountException;
 import com.knusdp.SmartLedger.exception.MissingRequiredFieldException;
-import com.knusdp.SmartLedger.repository.LedgerRepository;
+import com.knusdp.SmartLedger.repository.CategoryRepository;
+import com.knusdp.SmartLedger.repository.AccountBookRepository;
+import com.knusdp.SmartLedger.repository.UserRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,18 +17,25 @@ import java.math.BigDecimal;
 
 @RequiredArgsConstructor
 @Service
-public class LedgerService {
-    private final LedgerRepository ledgerRepository;
+public class AccountBookService {
+    private final AccountBookRepository accountBookRepository;
+    private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
 
-    public AccountBook createLedgerEntry(CreateAccountDto dto){
+    @Transactional
+    public void createLedgerEntry(Long memberId, CreateAccountDto dto){
         if (dto.getDate() == null || dto.getDescription() == null ||
                 dto.getAmount() == null || dto.getTransactionType() == null ||
-                dto.getPaymentType() == null || dto.getCategory() == null) {
+                dto.getPaymentType() == null || dto.getCategoryId() == null) {
             throw new MissingRequiredFieldException("필수 입력값이 누락되었습니다.");
         }
         if (dto.getAmount().compareTo(BigDecimal.ZERO) < 0) {
             throw new InvalidAmountException("금액은 0보다 커야 합니다.");
         }
+        Member member = userRepository.findById(memberId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+        AccountCategory category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다."));
         //TransactionType은 열거형이라 예외처리는 널값만 확인하면 된대
 
         AccountBook accountBook = AccountBook.builder()
@@ -32,8 +44,9 @@ public class LedgerService {
                 .amount(dto.getAmount())
                 .transactionType(dto.getTransactionType())
                 .paymentType(dto.getPaymentType())
-                .categoryId(dto.getCategory())
+                .category(category)
+                .member(member)
                 .build();
-        return ledgerRepository.save(accountBook);
+        accountBookRepository.save(accountBook);
     }
 }
