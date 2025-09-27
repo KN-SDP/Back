@@ -3,10 +3,9 @@ package com.knusdp.SmartLedger.controller;
 import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.Member;
-import com.knusdp.SmartLedger.exception.LoginFailedException;
-import com.knusdp.SmartLedger.exception.UserNotFoundException;
 import com.knusdp.SmartLedger.repository.UserRepository;
 import com.knusdp.SmartLedger.service.AuthService;
+import com.knusdp.SmartLedger.service.FindInFoService;
 import com.knusdp.SmartLedger.service.UserService;
 import com.knusdp.SmartLedger.util.CryptoUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,9 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -38,6 +37,8 @@ class AuthControllerTest {
     private AuthService authService;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private FindInFoService findInFoService;
 
     @MockBean
     private CryptoUtil cryptoUtil;
@@ -46,13 +47,22 @@ class AuthControllerTest {
 
     @BeforeEach
     void setup() {
-        // CryptoUtil의 동작을 Mocking (기존과 동일)
-        when(cryptoUtil.encrypt(anyString())).thenAnswer(invocation -> "encrypted_" + invocation.getArgument(0));
+        // 테스트 시작 전에 CryptoUtil의 동작을 정의 (Mocking)
+        when(cryptoUtil.encrypt(anyString())).thenAnswer(invocation -> {
+            // 어떤 문자열이 들어오든 "encrypted_"를 앞에 붙여서 반환
+            return "encrypted_" + invocation.getArgument(0);
+        });
         when(cryptoUtil.decrypt(anyString())).thenAnswer(invocation -> {
+            // "encrypted_"로 시작하는 문자열을 원래대로 돌려줌
             String encryptedValue = invocation.getArgument(0);
-            return encryptedValue.startsWith("encrypted_") ? encryptedValue.substring("encrypted_".length()) : encryptedValue;
+            if (encryptedValue.startsWith("encrypted_")) {
+                return encryptedValue.substring("encrypted_".length());
+            }
+            return encryptedValue;
         });
     }
+
+    // AuthControllerTest.java
 
     @Test
     @DisplayName("로그인 성공")
@@ -72,13 +82,13 @@ class AuthControllerTest {
         LoginResponseDto response = authService.login("1111@gmail.com", "123456");
 
         // then
+        // 이제 DTO가 null이 아니고, accessToken 필드가 비어있지 않은지만 확인합니다.
         assertThat(response).isNotNull();
-        assertThat(response.getEmail()).isEqualTo("1111@gmail.com");
-        assertThat(response.getToken()).isNotBlank();
+        assertThat(response.getAccess_token()).isNotBlank();
     }
 
     @Test
-    @DisplayName("로그인 실패 - 잘못된 비밀번호 시 예외 발생")
+    @DisplayName("로그인 실패 - 잘못된 비밀번호")
     void login_fail_wrong_password() {
         // given
         Member member = Member.builder()
@@ -91,20 +101,16 @@ class AuthControllerTest {
                 .build();
         userRepository.save(member);
 
-        // when & then
-        // authService.login 호출 시 LoginFailedException이 발생하는지 검증합니다.
-        LoginFailedException exception = assertThrows(LoginFailedException.class, () -> {
-            authService.login("1111@gmail.com", "wrongpw");
-        });
+        // when
+        LoginResponseDto response = authService.login("1111@gmail.com", "wrongpw");
 
-        // (선택) 예외 메시지까지 검증할 수 있습니다.
-        assertThat(exception.getMessage()).isEqualTo("이메일 또는 비밀번호가 일치하지 않습니다.");
+        // then
+        assertThat(response).isNull();
     }
 
     @Test
     @DisplayName("회원가입 성공 및 전화번호 암호화 검증")
     void signUp_success() {
-        // 이 테스트는 성공 케이스를 검증하므로 기존 로직과 동일합니다.
         // given
         SaveUserLoginInfoDto dto = new SaveUserLoginInfoDto();
         dto.setUserName("jiwoo");
@@ -123,6 +129,8 @@ class AuthControllerTest {
         assertThat(saved.getEmail()).isEqualTo("test@test.com");
         assertThat(passwordEncoder.matches("abcdef", saved.getPassword())).isTrue();
         assertThat(saved.getBirth()).isEqualTo(LocalDate.of(1999, 1, 1));
+
+        // 전화번호 암호화 검증
         String decryptedPhoneNumber = cryptoUtil.decrypt(saved.getPhoneNumber());
         assertThat(decryptedPhoneNumber).isEqualTo(dto.getUserPhoneNumber());
     }
@@ -130,7 +138,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("계정 복구 - 성공")
     void recoverId_success() {
-        // given
+        // 회원 저장
         Member member = Member.builder()
                 .username("jiwoo")
                 .email("recover@test.com")
@@ -141,23 +149,18 @@ class AuthControllerTest {
                 .build();
         userRepository.save(member);
 
-        // when
-        // 이제 Optional<String>이 아닌 String을 직접 반환받습니다.
-        String foundEmail = authService.findId("jiwoo", "01011112222", "1995-01-01");
+        // Service 호출
+        Optional<String> emailOpt = findInFoService.findId("jiwoo", "01011112222", "1995-01-01");
 
-        // then
-        assertThat(foundEmail).isEqualTo("recover@test.com");
+        assertThat(emailOpt).isPresent();
+        assertThat(emailOpt.get()).isEqualTo("recover@test.com");
     }
 
     @Test
-    @DisplayName("계정 복구 - 사용자 없을 시 예외 발생")
+    @DisplayName("계정 복구 - 사용자 없음")
     void recoverId_userNotFound() {
-        // when & then
-        // authService.findId 호출 시 UserNotFoundException이 발생하는지 검증합니다.
-        UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> {
-            authService.findId("nonexistent", "01000000000", "2000-01-01");
-        });
+        Optional<String> emailOpt = findInFoService.findId("nonexistent", "01000000000", "2000-01-01");
 
-        assertThat(exception.getMessage()).isEqualTo("일치하는 계정을 찾을 수 없습니다.");
+        assertThat(emailOpt).isNotPresent();
     }
 }

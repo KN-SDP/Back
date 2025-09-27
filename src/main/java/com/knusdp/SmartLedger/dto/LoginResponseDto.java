@@ -14,5 +14,9 @@ public class LoginResponseDto {
     private String email;
     private String username;
     private String nickname;
-    private String token; // JWT 토큰
+    private String access_token; // JWT 토큰
+
+    public LoginResponseDto(String access_token) {
+        this.access_token = access_token;
+    }
 }

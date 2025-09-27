@@ -25,7 +25,6 @@ import java.time.LocalDate;
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
     private final CryptoUtil cryptoUtil;
 
     public Member saveUserInfo(SaveUserLoginInfoDto dto) {
