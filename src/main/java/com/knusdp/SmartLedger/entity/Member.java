@@ -18,12 +18,11 @@ public class Member {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // PK
 
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, unique = true, length = 50)
     private String username;  // 유저 ID
 
-
     @Column(nullable = false, unique = true, length = 50)
-    private String nickname;    //닉네임
+    private String nickname;
 
     @Column(nullable = false, length = 100)
     private String password;  // 비밀번호 (암호화 필수)
@@ -31,10 +30,8 @@ public class Member {
     @Column(nullable = false, unique = true, length = 100)
     private String email;     // 이메일
 
-
     @Column(nullable = false, unique = true, length = 255)
     private String phoneNumber; //전화번호 (암호화)
-
 
     @Column(nullable = false)
     private LocalDate birth; // 생년월일
@@ -52,4 +49,5 @@ public class Member {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
 }
