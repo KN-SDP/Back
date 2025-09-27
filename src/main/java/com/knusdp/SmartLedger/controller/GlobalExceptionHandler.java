@@ -66,4 +66,23 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+    @ExceptionHandler(MissingRequiredFieldException.class)
+    public ResponseEntity<ErrorResponseDto> handleMissingRequiredFieldException(MissingRequiredFieldException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                400, // 409
+                "MISSING_REQUIRED_FIELD",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler(InvalidAmountException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidAmountException(InvalidAmountException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                400, // 409
+                "INVALID_AMOUNT",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
 }
