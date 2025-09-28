@@ -1,5 +1,4 @@
 package com.knusdp.SmartLedger.entity;
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,6 +8,7 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+
 public class AccountCategory {
 
     @Id

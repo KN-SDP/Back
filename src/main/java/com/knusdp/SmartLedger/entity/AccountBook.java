@@ -3,9 +3,9 @@ package com.knusdp.SmartLedger.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 
 @Entity
 @Getter
@@ -40,6 +40,7 @@ public class AccountBook {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private Member member;
+
 
     // Account_Category와의 관계 (ERD의 categoryId FK)
     @ManyToOne(fetch = FetchType.LAZY)

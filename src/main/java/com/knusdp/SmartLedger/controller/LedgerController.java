@@ -21,7 +21,6 @@ public class LedgerController {
     public ResponseEntity<?> createLedgerEntry(@RequestBody CreateAccountDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-
         accountBookService.createLedgerEntry(userId, dto);
 
         return ResponseEntity.noContent().build();
