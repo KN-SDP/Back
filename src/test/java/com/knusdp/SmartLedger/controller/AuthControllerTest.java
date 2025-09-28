@@ -84,7 +84,7 @@ class AuthControllerTest {
         // then
         // 이제 DTO가 null이 아니고, accessToken 필드가 비어있지 않은지만 확인합니다.
         assertThat(response).isNotNull();
-        assertThat(response.getAccess_token()).isNotBlank();
+        assertThat(response.getAccessToken()).isNotBlank();
     }
 
     @Test
