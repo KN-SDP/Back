@@ -1,4 +1,4 @@
-package com.knusdp.SmartLedger.controller;
+package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.CreateAccountDto;
 import com.knusdp.SmartLedger.entity.*;
@@ -6,7 +6,6 @@ import com.knusdp.SmartLedger.exception.InvalidAmountException;
 import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.AccountBookRepository;
 import com.knusdp.SmartLedger.repository.UserRepository;
-import com.knusdp.SmartLedger.service.AccountBookService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
-class LedgerControllerTest { // 테스트 클래스 이름은 Service를 테스트하므로 LedgerServiceTest가 더 적절합니다.
+class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테스트하므로 LedgerServiceTest가 더 적절합니다.
 
     @Autowired
     private AccountBookService accountBookService;
@@ -81,10 +80,30 @@ class LedgerControllerTest { // 테스트 클래스 이름은 Service를 테스�
 
         AccountBook savedEntry = entries.get(0); // 저장된 첫 번째 데이터
         assertThat(savedEntry.getDescription()).isEqualTo("점심 식사");
-        assertThat(savedEntry.getAmount()).isEqualTo(new BigDecimal("9000.00")); // DB는 scale 2로 저장될 수 있음
+        assertThat(savedEntry.getAmount()).isEqualTo(new BigDecimal("9000")); //
         assertThat(savedEntry.getMember().getId()).isEqualTo(testUser.getId());
         assertThat(savedEntry.getCategory().getCategoryId()).isEqualTo(testCategory.getCategoryId());
     }
+
+    @Test
+    @DisplayName("가계부 내역 추가 실패 - 금액이 소수점일 경우")
+    void createLedgerEntry_fail_decimalAmount() {
+        // given
+        CreateAccountDto dto = new CreateAccountDto(
+                LocalDate.now(),
+                "소수점 입력",
+                new BigDecimal("9000.50"),
+                TransactionType.EXPENSE,
+                PaymentType.CASH,
+                testCategory.getCategoryId()
+        );
+
+        // when & then
+        assertThrows(InvalidAmountException.class, () -> {
+            accountBookService.createLedgerEntry(testUser.getId(), dto);
+        });
+    }
+
 
     @Test
     @DisplayName("가계부 내역 추가 실패 - 금액이 0 이하일 경우")

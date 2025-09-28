@@ -10,7 +10,6 @@ import java.time.LocalDate;
 @Entity
 @Getter
 @Setter
-@Table(name = "account_book")
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -23,7 +22,7 @@ public class AccountBook {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(precision = 15, scale = 2, nullable = false)
+    @Column(precision = 15, scale = 0, nullable = false)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
@@ -39,7 +38,7 @@ public class AccountBook {
 
     // Member와의 관계 (ERD의 userId FK)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private Member member;
 
     // Account_Category와의 관계 (ERD의 categoryId FK)
@@ -49,6 +48,6 @@ public class AccountBook {
 
     // ERD의 'date'(작성일) 컬럼을 자동 생성/업데이트 타임스탬프로 관리
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
+    @Column(name = "createAt", nullable = false, updatable = false)
     private LocalDate createdAt;
 }

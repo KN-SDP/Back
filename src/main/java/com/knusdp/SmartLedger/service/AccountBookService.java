@@ -29,14 +29,22 @@ public class AccountBookService {
                 dto.getPaymentType() == null || dto.getCategoryId() == null) {
             throw new MissingRequiredFieldException("필수 입력값이 누락되었습니다.");
         }
-        if (dto.getAmount().compareTo(BigDecimal.ZERO) < 0) {
+
+        // 금액 0 이하 체크
+        if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidAmountException("금액은 0보다 커야 합니다.");
         }
+
+        // 소수점 입력 체크
+        if (dto.getAmount().scale() > 0) {
+            throw new InvalidAmountException("금액은 정수만 입력할 수 있습니다.");
+        }
+
         Member member = userRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
         AccountCategory category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다."));
-        //TransactionType은 열거형이라 예외처리는 널값만 확인하면 된대
 
         AccountBook accountBook = AccountBook.builder()
                 .transactionDate(dto.getDate())
@@ -47,6 +55,8 @@ public class AccountBookService {
                 .category(category)
                 .member(member)
                 .build();
+
         accountBookRepository.save(accountBook);
     }
+
 }

@@ -20,7 +20,6 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 @Getter
 @Setter
-@Builder
 @Service
 public class UserService {
     private final UserRepository userRepository;
