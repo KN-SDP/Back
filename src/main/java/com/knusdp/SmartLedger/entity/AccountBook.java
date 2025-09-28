@@ -3,9 +3,9 @@ package com.knusdp.SmartLedger.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
+
 
 @Entity
 @Getter
@@ -21,7 +21,7 @@ public class AccountBook {
 
     @Column(columnDefinition = "TEXT")
     private String description;
-
+    
     @Column(precision = 15, scale = 0, nullable = false)
     private BigDecimal amount;
 
