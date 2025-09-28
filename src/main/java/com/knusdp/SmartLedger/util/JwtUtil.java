@@ -19,7 +19,7 @@ public class JwtUtil {
                 .setSubject(userId) // payload에 userId 저장
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // ✅ 최신 버전 방식
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // 최신 버전 방식
                 .compact();
     }
 
