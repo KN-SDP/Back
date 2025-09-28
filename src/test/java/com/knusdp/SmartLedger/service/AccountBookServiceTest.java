@@ -5,7 +5,7 @@ import com.knusdp.SmartLedger.entity.*;
 import com.knusdp.SmartLedger.exception.InvalidAmountException;
 import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.AccountBookRepository;
-import com.knusdp.SmartLedger.repository.UserRepository;
+import com.knusdp.SmartLedger.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +28,7 @@ class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테�
     private AccountBookService accountBookService;
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository memberRepository;
 
     @Autowired
     private CategoryRepository categoryRepository;
@@ -41,7 +41,7 @@ class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테�
 
     @BeforeEach
     void setup() {
-        testUser = userRepository.save(Member.builder()
+        testUser = memberRepository.save(Member.builder()
                 .email("test@user.com")
                 .password("1234")
                 .username("테스트유저")

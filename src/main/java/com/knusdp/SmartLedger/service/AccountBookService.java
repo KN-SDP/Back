@@ -8,7 +8,7 @@ import com.knusdp.SmartLedger.exception.InvalidAmountException;
 import com.knusdp.SmartLedger.exception.MissingRequiredFieldException;
 import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.AccountBookRepository;
-import com.knusdp.SmartLedger.repository.UserRepository;
+import com.knusdp.SmartLedger.repository.MemberRepository;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,7 +19,7 @@ import java.math.BigDecimal;
 @Service
 public class AccountBookService {
     private final AccountBookRepository accountBookRepository;
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
 
     @Transactional
@@ -40,7 +40,7 @@ public class AccountBookService {
             throw new InvalidAmountException("금액은 정수만 입력할 수 있습니다.");
         }
 
-        Member member = userRepository.findById(memberId)
+        Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
         AccountCategory category = categoryRepository.findById(dto.getCategoryId())
