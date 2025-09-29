@@ -19,6 +19,7 @@ public class JwtUtil {
         Claims claims = Jwts.claims().setSubject(String.valueOf(member.getId()));
         claims.put("username", member.getUsername());
         claims.put("nickname", member.getNickname());
+        claims.put("email", member.getEmail());
 
         return Jwts.builder()
                 .setClaims(claims)
@@ -69,5 +70,13 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody()
                 .get("nickname", String.class);
+    }
+    public static String getEmailFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("email", String.class);
     }
 }
