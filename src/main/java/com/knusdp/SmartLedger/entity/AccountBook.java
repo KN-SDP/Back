@@ -3,10 +3,9 @@ package com.knusdp.SmartLedger.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Entity
 @Getter
@@ -23,7 +22,7 @@ public class AccountBook {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(precision = 15, scale = 2, nullable = false)
+    @Column(precision = 15, scale = 0, nullable = false)
     private BigDecimal amount;
 
     @Enumerated(EnumType.STRING)
@@ -35,20 +34,20 @@ public class AccountBook {
     private PaymentType paymentType;
 
     @Column(nullable = false)
-    private String transactionDate;
+    private LocalDate transactionDate;
 
     // Member와의 관계 (ERD의 userId FK)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
-    private Member userId;
+    @JoinColumn(name = "user_id", nullable = false)
+    private Member member;
 
     // Account_Category와의 관계 (ERD의 categoryId FK)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryId", nullable = false)
-    private AccountCategory categoryId;
+    private AccountCategory category;
 
     // ERD의 'date'(작성일) 컬럼을 자동 생성/업데이트 타임스탬프로 관리
     @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    private String createdAt;
+    @Column(name = "createAt", nullable = false, updatable = false)
+    private LocalDate createdAt;
 }

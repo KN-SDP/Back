@@ -1,15 +1,16 @@
 package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.*;
-import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.FindInFoService;
-import com.knusdp.SmartLedger.service.UserService;
+import com.knusdp.SmartLedger.service.MemberService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -18,9 +19,9 @@ import java.util.Optional;
 public class AuthController {
 
     private final AuthService authService;
-    private final UserService userService;
+    private final MemberService memberService;
     private final FindInFoService findInFoService;
-
+    /*로그인*/
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto){
 
@@ -32,17 +33,17 @@ public class AuthController {
             return ResponseEntity.status(401).body("로그인실패");
         }
     }
-
+    /*회원가입*/
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SaveUserLoginInfoDto dto) {
         try {
-            userService.saveUserInfo(dto);
+            memberService.saveUserInfo(dto);
             return ResponseEntity.ok("가입이 완료되었습니다.");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
-
+    /*아이디 찾기*/
     @PostMapping("/recover-id")
     public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
         try {
@@ -79,6 +80,42 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+    /*비밀번호 찾기*/
+    @PostMapping("/recover-password")
+    public ResponseEntity<?> recoverPassword(@RequestBody RecoverPasswordRequestDto dto) {
+        boolean valid = memberService.validateMember(dto.getEmail(), dto.getName(), dto.getBirth(), dto.getPhone());
+
+        if (valid) {
+            return ResponseEntity.ok(Map.of("message", "사용자 정보가 확인되었습니다. 비밀번호를 재설정해주세요."));
+        } else {
+            return ResponseEntity.status(404).body(Map.of(
+                    "error_code", "UserNotFound",
+                    "message", "입력한 정보와 일치하는 사용자가 없습니다."
+            ));
+        }
+    }
+    /*비밀번호 재설정*/
+    @PostMapping("/recover-password/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto dto) {
+        try {
+            boolean success = memberService.resetPassword(dto.getEmail(), dto.getNewPassword(), dto.getCheckedPassword());
+
+            if (success) {
+                return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+            } else {
+                return ResponseEntity.status(404).body(Map.of(
+                        "error_code", "UserNotFound",
+                        "message", "등록되지 않은 사용자입니다."
+                ));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "error_code", "PasswordMismatch",
+                    "message", "비밀번호 확인이 일치하지 않습니다."
+            ));
+        }
+    }
+
 }
 //앞으로 리팩터링 포인트
 //

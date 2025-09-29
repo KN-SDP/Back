@@ -3,10 +3,10 @@ package com.knusdp.SmartLedger.controller;
 import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.Member;
-import com.knusdp.SmartLedger.repository.UserRepository;
+import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.FindInFoService;
-import com.knusdp.SmartLedger.service.UserService;
+import com.knusdp.SmartLedger.service.MemberService;
 import com.knusdp.SmartLedger.util.CryptoUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,9 +30,9 @@ import static org.mockito.Mockito.when;
 class AuthControllerTest {
 
     @Autowired
-    private UserRepository userRepository;
+    private MemberRepository memberRepository;
     @Autowired
-    private UserService userService;
+    private MemberService memberService;
     @Autowired
     private AuthService authService;
     @Autowired
@@ -76,7 +76,7 @@ class AuthControllerTest {
                 .birth(LocalDate.parse("2000-01-01", formatter))
                 .nickname("테스트닉네임")
                 .build();
-        userRepository.save(member);
+        memberRepository.save(member);
 
         // when
         LoginResponseDto response = authService.login("1111@gmail.com", "123456");
@@ -84,7 +84,7 @@ class AuthControllerTest {
         // then
         // 이제 DTO가 null이 아니고, accessToken 필드가 비어있지 않은지만 확인합니다.
         assertThat(response).isNotNull();
-        assertThat(response.getAccess_token()).isNotBlank();
+        assertThat(response.getAccessToken()).isNotBlank();
     }
 
     @Test
@@ -99,7 +99,7 @@ class AuthControllerTest {
                 .birth(LocalDate.parse("2000-01-01", formatter))
                 .nickname("테스트닉네임1")
                 .build();
-        userRepository.save(member);
+        memberRepository.save(member);
 
         // when
         LoginResponseDto response = authService.login("1111@gmail.com", "wrongpw");
@@ -122,7 +122,7 @@ class AuthControllerTest {
         dto.setUserNickname("tester");
 
         // when
-        Member saved = userService.saveUserInfo(dto);
+        Member saved = memberService.saveUserInfo(dto);
 
         // then
         assertThat(saved.getId()).isNotNull();
@@ -147,7 +147,7 @@ class AuthControllerTest {
                 .birth(LocalDate.parse("1995-01-01", formatter))
                 .nickname("recoverTest")
                 .build();
-        userRepository.save(member);
+        memberRepository.save(member);
 
         // Service 호출
         Optional<String> emailOpt = findInFoService.findId("jiwoo", "01011112222", "1995-01-01");
@@ -163,4 +163,110 @@ class AuthControllerTest {
 
         assertThat(emailOpt).isNotPresent();
     }
+
+    /*비밀번호 찾기*/
+    @Test
+    @DisplayName("비밀번호 재설정 - 성공")
+    void resetPassword_success() {
+        // given (회원 가입)
+        Member member = Member.builder()
+                .username("jiwoo")
+                .email("reset@test.com")
+                .password(passwordEncoder.encode("oldpassword"))
+                .phoneNumber(cryptoUtil.encrypt("01022223333"))
+                .birth(LocalDate.parse("1998-01-01", formatter))
+                .nickname("resetTester")
+                .build();
+        memberRepository.save(member);
+
+        // when (비밀번호 재설정 시도)
+        boolean result = memberService.resetPassword("reset@test.com", "newpassword", "newpassword");
+
+        // then
+        assertThat(result).isTrue();
+
+        // 비밀번호가 실제로 변경되었는지 확인
+        Member updated = memberRepository.findByEmail("reset@test.com").get();
+        assertThat(passwordEncoder.matches("newpassword", updated.getPassword())).isTrue();
+    }
+
+    @Test
+    @DisplayName("비밀번호 재설정 - 비밀번호 확인 불일치")
+    void resetPassword_passwordMismatch() {
+        // given
+        Member member = Member.builder()
+                .username("jiwoo")
+                .email("mismatch@test.com")
+                .password(passwordEncoder.encode("123456"))
+                .phoneNumber(cryptoUtil.encrypt("01044445555"))
+                .birth(LocalDate.parse("1997-01-01", formatter))
+                .nickname("mismatchTester")
+                .build();
+        memberRepository.save(member);
+
+        // when & then (예외 발생 확인)
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            memberService.resetPassword("mismatch@test.com", "newpass", "different");
+        });
+    }
+
+    @Test
+    @DisplayName("비밀번호 재설정 - 사용자 없음")
+    void resetPassword_userNotFound() {
+        // when
+        boolean result = memberService.resetPassword("nouser@test.com", "newpass", "newpass");
+
+        // then
+        assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("계정 검증 - 성공")
+    void validateMember_success() {
+        // given
+        Member member = Member.builder()
+                .username("jiwoo")
+                .email("validate@test.com")
+                .password(passwordEncoder.encode("123456"))
+                .phoneNumber(cryptoUtil.encrypt("01066667777")) // 암호화 저장
+                .birth(LocalDate.parse("1996-01-01", formatter))
+                .nickname("validateTester")
+                .build();
+        memberRepository.save(member);
+
+        // when
+        // 👉 평문으로 넣어도 Service 내부에서 encrypt() 해서 비교
+        boolean valid = memberService.validateMember(
+                "validate@test.com", "jiwoo", "1996-01-01", "01066667777"
+        );
+
+        // then
+        assertThat(valid).isTrue();
+    }
+
+
+    @Test
+    @DisplayName("계정 검증 - 실패 (정보 불일치)")
+    void validateMember_fail() {
+        // given
+        Member member = Member.builder()
+                .username("jiwoo")
+                .email("validatefail@test.com")
+                .password(passwordEncoder.encode("123456"))
+                .phoneNumber(cryptoUtil.encrypt("01088889999"))
+                .birth(LocalDate.parse("1994-01-01", formatter))
+                .nickname("failTester")
+                .build();
+        memberRepository.save(member);
+
+        // when
+        boolean valid = memberService.validateMember(
+                "validatefail@test.com", "wrongname", "1994-01-01", "01088889999"
+        );
+
+        // then
+        assertThat(valid).isFalse();
+    }
+
+
 }

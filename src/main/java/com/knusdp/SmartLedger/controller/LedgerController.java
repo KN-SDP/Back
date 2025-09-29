@@ -1,7 +1,7 @@
 package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.CreateAccountDto;
-import com.knusdp.SmartLedger.service.LedgerService;
+import com.knusdp.SmartLedger.service.AccountBookService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,14 +15,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/ledger")
 public class LedgerController {
-    private final LedgerService ledgerService;
+    private final AccountBookService accountBookService;
 
     @PostMapping
     public ResponseEntity<?> createLedgerEntry(@RequestBody CreateAccountDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-
+        accountBookService.createLedgerEntry(userId, dto);
 
         return ResponseEntity.noContent().build();
     }
