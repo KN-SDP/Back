@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 //이메일(아이디정보) 리턴하는 dto
 public class FindIdResponseDto {
-    private int status_code;
+    private int statusCode;
     private String message;
     private String email;
 }
