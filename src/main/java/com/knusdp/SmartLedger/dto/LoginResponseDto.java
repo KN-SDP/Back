@@ -7,13 +7,8 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
 public class LoginResponseDto {
-    private Long userId;
-    private String email;
-    private String username;
-    private String nickname;
     private String accessToken; // JWT 토큰
 
     public LoginResponseDto(String accessToken) {

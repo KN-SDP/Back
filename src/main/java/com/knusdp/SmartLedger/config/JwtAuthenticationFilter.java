@@ -1,4 +1,4 @@
-package com.knusdp.SmartLedger.config; // 경로는 SecurityConfig와 맞추세요
+package com.knusdp.SmartLedger.config;
 
 import com.knusdp.SmartLedger.util.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -38,6 +38,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // Spring Security가 이해할 수 있는 UserDetails 객체 생성
+            // Principal(주체)로 고유한 userId를 사용
             UserDetails userDetails = new User(userId, "", Collections.emptyList());
 
             // 인증 객체 생성
