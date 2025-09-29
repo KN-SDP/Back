@@ -45,40 +45,20 @@ public class AuthController {
     }
     /*아이디 찾기*/
     @PostMapping("/recover-id")
-    public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
-        try {
-            Optional<String> emailOpt = findInFoService.findId(
-                    request.getName(),
-                    request.getPhoneNum(),
-                    request.getBirth()
-            );
+    public ResponseEntity<FindIdResponseDto> findId(@RequestBody FindIdRequestDto request) {
+        // 성공 시 200 OK, 실패 시 서비스가 예외를 던지면 GlobalExceptionHandler가 404 등을 처리
+        String foundEmail = findInFoService.findId(
+                request.getName(),
+                request.getPhoneNum(),
+                request.getBirth()
+        );
 
-            if(emailOpt.isPresent()){
-                FindIdResponseDto responseDto = new FindIdResponseDto(
-                        200,
-                        "가입된 이메일을 확인했습니다.",
-                        emailOpt.get()
-                );
-                return ResponseEntity.ok(responseDto);
-            } else {
-                // 사용자 없음 → 404 처리
-                ErrorResponseDto error = new ErrorResponseDto(
-                        404,
-                        "UserNotFound",
-                        "일치하는 계정을 찾을 수 없습니다."
-                );
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-            }
-
-        } catch(Exception e) {
-            // 서버 오류 → 500 처리
-            ErrorResponseDto error = new ErrorResponseDto(
-                    500,
-                    "InternalServerError",
-                    "서버에 문제가 발생했습니다."
-            );
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
-        }
+        FindIdResponseDto responseDto = new FindIdResponseDto(
+                HttpStatus.OK.value(),
+                "가입된 이메일을 확인했습니다.",
+                foundEmail
+        );
+        return ResponseEntity.ok(responseDto);
     }
     /*비밀번호 찾기*/
     @PostMapping("/recover-password")

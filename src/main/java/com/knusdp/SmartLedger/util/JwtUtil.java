@@ -1,5 +1,6 @@
 package com.knusdp.SmartLedger.util;
 
+import com.knusdp.SmartLedger.entity.Member;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -14,12 +15,16 @@ public class JwtUtil {
     private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
 
     // JWT 생성
-    public static String generateToken(String userId) {
+    public static String generateToken(Member member) {
+        Claims claims = Jwts.claims().setSubject(String.valueOf(member.getId()));
+        claims.put("username", member.getUsername());
+        claims.put("nickname", member.getNickname());
+
         return Jwts.builder()
-                .setSubject(userId) // payload에 userId 저장
+                .setClaims(claims)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SECRET_KEY, SignatureAlgorithm.HS256) // 최신 버전 방식
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -32,11 +37,11 @@ public class JwtUtil {
                     .parseClaimsJws(token);
             return true;
         } catch (JwtException e) {
-            return false; // 만료, 변조 등 모든 문제는 false
+            return false;
         }
     }
 
-    // JWT에서 사용자 ID 추출
+    // (추가) JWT에서 사용자 ID 추출 (Subject 클레임)
     public static String getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
@@ -44,5 +49,25 @@ public class JwtUtil {
                 .parseClaimsJws(token)
                 .getBody();
         return claims.getSubject();
+    }
+
+    // JWT에서 사용자 이름 추출
+    public static String getUsernameFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("username", String.class);
+    }
+
+    // JWT에서 닉네임 추출
+    public static String getNicknameFromToken(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(SECRET_KEY)
+                .build()
+                .parseClaimsJws(token)
+                .getBody()
+                .get("nickname", String.class);
     }
 }

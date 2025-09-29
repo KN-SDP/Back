@@ -2,6 +2,7 @@ package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.entity.Member;
+import com.knusdp.SmartLedger.exception.LoginFailedException;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.util.CryptoUtil;
 import com.knusdp.SmartLedger.util.JwtUtil;
@@ -19,21 +20,17 @@ public class AuthService {
     private final CryptoUtil cryptoUtil;
 
 
+    // AuthService.java
     public LoginResponseDto login(String email, String checkedPassword) {
-        Optional<Member> userOpt = memberRepository.findByEmail(email);
-        if (userOpt.isPresent()) {
-            Member member = userOpt.get();
-            System.out.println("DB PW: " + member.getPassword());
-            System.out.println("입력 PW: " + checkedPassword);
+        Member member = memberRepository.findByEmail(email)
+                .orElseThrow(() -> new LoginFailedException("이메일 또는 비밀번호가 일치하지 않습니다."));
 
-            if (passwordEncoder.matches(checkedPassword, member.getPassword())) {
-                String token = JwtUtil.generateToken(String.valueOf(member.getId()));
-
-                return new LoginResponseDto(
-                        token
-                );
-            }
+        if (!passwordEncoder.matches(checkedPassword, member.getPassword())) {
+            throw new LoginFailedException("이메일 또는 비밀번호가 일치하지 않습니다.");
         }
-        return null;
+
+        String token = JwtUtil.generateToken(member);
+
+        return new LoginResponseDto(token);
     }
 }
