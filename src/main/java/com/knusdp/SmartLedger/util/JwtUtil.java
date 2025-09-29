@@ -21,6 +21,7 @@ public class JwtUtil {
         claims.put("nickname", member.getNickname());
         claims.put("email", member.getEmail());
 
+
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(new Date())
