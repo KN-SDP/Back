@@ -61,6 +61,7 @@ jobs:
             
             echo "CRYPTO_KEY=${{ secrets.CRYPTO_KEY }}" > .env
             echo "CRYPTO_INIT_VECTOR=${{ secrets.CRYPTO_INIT_VECTOR }}" >> .env
+            echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
             
             if [ "${{ github.ref_name }}" == "main" ]; then
               sudo docker compose pull spring-app

@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Transactional
+@ActiveProfiles("test")
 class AuthControllerTest {
 
     @Autowired
@@ -43,7 +45,8 @@ class AuthControllerTest {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private FindInFoService findInFoService;
-
+    @Autowired
+    private JwtUtil jwtUtil;
     @MockBean
     private CryptoUtil cryptoUtil;
 
@@ -81,8 +84,9 @@ class AuthControllerTest {
         assertThat(token).isNotBlank();
 
         // ★★★ 검증 로직 수정 ★★★
-        String userIdFromToken = JwtUtil.getUserIdFromToken(token);
-        String usernameFromToken = JwtUtil.getUsernameFromToken(token);
+        String userIdFromToken = jwtUtil.getUserIdFromToken(token);
+        String usernameFromToken = jwtUtil.getUsernameFromToken(token);
+
 
         assertThat(userIdFromToken).isEqualTo(String.valueOf(member.getId())); // ID는 ID와 비교
         assertThat(usernameFromToken).isEqualTo("jiwoo");                    // username은 username과 비교
