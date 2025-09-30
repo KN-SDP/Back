@@ -87,6 +87,7 @@ class AuthControllerTest {
         String userIdFromToken = jwtUtil.getUserIdFromToken(token);
         String usernameFromToken = jwtUtil.getUsernameFromToken(token);
 
+
         assertThat(userIdFromToken).isEqualTo(String.valueOf(member.getId())); // ID는 ID와 비교
         assertThat(usernameFromToken).isEqualTo("jiwoo");                    // username은 username과 비교
     }

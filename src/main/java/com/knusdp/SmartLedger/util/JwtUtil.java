@@ -29,6 +29,7 @@ public class JwtUtil {
     }
     // JWT 생성
     public String generateToken(Member member) {
+
         Claims claims = Jwts.claims().setSubject(String.valueOf(member.getId()));
         claims.put("username", member.getUsername());
         claims.put("nickname", member.getNickname());
@@ -56,6 +57,7 @@ public class JwtUtil {
     }
 
     public String getUserIdFromToken(String token) {
+
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()
@@ -66,6 +68,7 @@ public class JwtUtil {
 
     // JWT에서 사용자 이름 추출
     public String getUsernameFromToken(String token) {
+
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()
@@ -76,6 +79,7 @@ public class JwtUtil {
 
     // JWT에서 닉네임 추출
     public String getNicknameFromToken(String token) {
+
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()
@@ -84,6 +88,7 @@ public class JwtUtil {
                 .get("nickname", String.class);
     }
     public String getEmailFromToken(String token) {
+
         return Jwts.parserBuilder()
                 .setSigningKey(SECRET_KEY)
                 .build()
