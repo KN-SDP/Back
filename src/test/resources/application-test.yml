@@ -34,7 +34,8 @@ management:
   endpoint:
     health:
       show-details: when_authorized   # 인증된 사용자만 DB 상태 같은 세부정보 확인 가능
-
+jwt:
+  secret-key: 'kXyZ/AbCdEfGhIjKlMnOpQrStUvWxYz/aBcDeFgH123iJkL='
 crypto:
   secret-key: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
   init-vector: a1b2c3d4e5f6a1b2
