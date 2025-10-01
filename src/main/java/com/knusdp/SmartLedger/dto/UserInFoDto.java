@@ -7,7 +7,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@NoArgsConstructor
+
 @AllArgsConstructor
 public class UserInFoDto {
     private int userID;
@@ -16,4 +16,8 @@ public class UserInFoDto {
     private String userName;
     private String userPhoneNum;
     private String userBirth;
+
+    public UserInFoDto (String userNickName){
+        this.userNickName = userNickName;
+    }
 }

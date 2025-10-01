@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -94,6 +96,15 @@ public class AuthController {
                     "message", "비밀번호 확인이 일치하지 않습니다."
             ));
         }
+    }
+    @PatchMapping("/changeNickname")
+    public ResponseEntity<?> updateNickname(@RequestBody UserInFoDto dto){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+
+        authService.changeNickname(dto.getUserNickName(), userId);
+
+        return ResponseEntity.ok("닉네임 변경이 완료되었습니다.");
     }
 
 }
