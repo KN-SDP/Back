@@ -3,11 +3,14 @@ package com.knusdp.SmartLedger.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "AccountBook") // ERD의 테이블 이름과 일치
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,37 +20,36 @@ public class AccountBook {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long transactionId;
+    private Long transactionId; // bigint -> Long (PK)
 
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(precision = 15, scale = 0, nullable = false)
-    private BigDecimal amount;
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal amount; // DECIMAL(15, 2) -> BigDecimal
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private TransactionType transactionType;
+    private TransactionType transactionType; // ENUM
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentType paymentType;
+    private PaymentType paymentType; // ENUM
 
     @Column(nullable = false)
-    private LocalDate transactionDate;
+    private LocalDate transactionDate; // LocalDateTime
 
-    // Member와의 관계 (ERD의 userId FK)
+    @CreationTimestamp // INSERT 시 자동으로 현재 시간 저장
+    @Column(nullable = false, updatable = false)
+    private LocalDate date; // ERD의 '작성일' 컬럼, updatable = false
+
+    // Member와의 관계 (userId FK)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "userId", nullable = false)
     private Member member;
 
-    // Account_Category와의 관계 (ERD의 categoryId FK)
+    // Account_Category와의 관계 (categoryId FK)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryId", nullable = false)
     private AccountCategory category;
-
-    // ERD의 'date'(작성일) 컬럼을 자동 생성/업데이트 타임스탬프로 관리
-    @CreationTimestamp
-    @Column(name = "createAt", nullable = false, updatable = false)
-    private LocalDate createdAt;
 }
