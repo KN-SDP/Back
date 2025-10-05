@@ -9,11 +9,10 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
@@ -33,15 +32,20 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                // JWT 인증을 사용하므로 세션은 STATELESS(상태 없음)로 설정
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // /users/** 경로는 인증 없이 허용 (회원가입, 로그인 등)
-                        .requestMatchers("/users/**").permitAll()
-                        // 그 외 모든 요청은 인증이 필요함
+                        // 1. 인증 없이 접근을 허용할 URL들을 명시적으로 지정합니다.
+                        .requestMatchers(
+                                "/users/login",
+                                "/users/sign-up",
+                                "/users/recover-id",
+                                "/users/recover-password",
+                                "/users/recover-password/reset"
+                        ).permitAll()
+                        // 2. 위에서 허용한 URL을 제외한 나머지 모든 요청은 인증이 필요합니다.
+                        //    (예: /users/changeNickname, /ledger 등)
                         .anyRequest().authenticated()
                 )
-                // ★★★ 직접 만든 JWT 필터를 Spring Security 필터 체인에 추가
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -50,15 +54,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedOrigins(List.of("*")); // 모든 출처 허용
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
+        configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 위 설정 적용
 
         return source;
     }
 }
-

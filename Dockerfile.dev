@@ -1,0 +1,13 @@
+# Dockerfile.dev
+
+FROM openjdk:21-jdk-slim
+WORKDIR /app
+
+# build/libs/*.jar 대신 build/dependencies 폴더를 만들어 의존성을 분리하면
+# 더 빠른 재시작이 가능하지만, 우선 간단한 방식으로 설정합니다.
+COPY build/libs/*-SNAPSHOT.jar app.jar
+
+EXPOSE 8080
+
+# 클래스패스를 지정하여 실행하도록 변경합니다.
+ENTRYPOINT ["java", "-cp", "app.jar:.", "org.springframework.boot.loader.launch.JarLauncher"]
