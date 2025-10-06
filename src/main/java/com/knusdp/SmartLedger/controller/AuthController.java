@@ -4,6 +4,7 @@ import com.knusdp.SmartLedger.dto.*;
 import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.FindInFoService;
 import com.knusdp.SmartLedger.service.MemberService;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -97,14 +98,15 @@ public class AuthController {
             ));
         }
     }
-    @PatchMapping("/changeNickname")
-    public ResponseEntity<?> updateNickname(@RequestBody UserInFoDto dto){
+    @Transactional
+    @PatchMapping("/nickname")
+    public ResponseEntity<String> updateNickname(@RequestBody UserInFoDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String userId = authentication.getName();
+        Long userId = Long.parseLong(authentication.getName());
 
-        authService.changeNickname(dto.getUserNickName(), userId);
+        memberService.updateNickname(userId, dto.getUserNickName());
 
-        return ResponseEntity.ok("닉네임 변경이 완료되었습니다.");
+        return ResponseEntity.ok("닉네임이 성공적으로 변경되었습니다.");
     }
 
 }
