@@ -1,12 +1,14 @@
 package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.ErrorResponseDto;
+import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.*;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -83,6 +85,23 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDto> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        String message;
+        // TransactionType 변환 오류일 경우 더 구체적인 메시지 제공
+        if (ex.getRequiredType() != null && ex.getRequiredType().equals(TransactionType.class)) {
+            message = "거래 타입은 'INCOME', 'EXPENSE', 'SAVING', 'TRANSFER' 중 하나여야 합니다.";
+        } else {
+            message = "요청 파라미터의 형식이 올바르지 않습니다.";
+        }
+
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_QUERY_PARAMETER",
+                message
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
 }
