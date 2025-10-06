@@ -4,6 +4,7 @@ import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.exception.EmailDuplicateException;
 import com.knusdp.SmartLedger.exception.NickNameDuplicateException;
+import com.knusdp.SmartLedger.exception.UserNotFoundException;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 
 import com.knusdp.SmartLedger.util.CryptoUtil;
@@ -80,5 +81,18 @@ public class MemberService {
         } else {
             return false;
         }
+    }
+    public void updateNickname(Long userId, String newNickname) {
+        Member currentUser = memberRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
+
+        memberRepository.findByNickname(newNickname)
+                .ifPresent(member -> {
+                    if (!member.getId().equals(currentUser.getId())) {
+                        throw new NickNameDuplicateException("이미 다른 사용자가 사용 중인 닉네임입니다.");
+                    }
+                });
+
+        currentUser.setNickname(newNickname);
     }
 }

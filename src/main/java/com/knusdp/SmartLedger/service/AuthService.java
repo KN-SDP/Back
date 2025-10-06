@@ -37,17 +37,4 @@ public class AuthService {
 
         return new LoginResponseDto(token);
     }
-    @Transactional
-    public void changeNickname(String nickname, String token){
-        Long userId = Long.parseLong(jwtUtil.getUserIdFromToken(token));
-        Optional<Member> foundByNickname = memberRepository.findByNickname(nickname);
-        if (foundByNickname.isPresent() && !foundByNickname.get().getId().equals(userId))
-        {
-            throw new NickNameDuplicateException("이미 사용중인 닉네임입니다.");
-        }
-        else {
-            Member member = memberRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
-            member.setNickname(nickname);
-        }
-    }
 }
