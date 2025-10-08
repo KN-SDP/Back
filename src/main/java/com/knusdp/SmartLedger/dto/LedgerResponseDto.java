@@ -3,11 +3,14 @@ package com.knusdp.SmartLedger.dto;
 import com.knusdp.SmartLedger.entity.AccountBook;
 import com.knusdp.SmartLedger.entity.PaymentType;
 import com.knusdp.SmartLedger.entity.TransactionType;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class LedgerResponseDto {
     private Long id;

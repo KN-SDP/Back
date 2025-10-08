@@ -87,7 +87,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponseDto> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<ErrorResponseDto> handleTransactionTypeMismatchException(MethodArgumentTypeMismatchException ex) {
         String message;
         // TransactionType 변환 오류일 경우 더 구체적인 메시지 제공
         if (ex.getRequiredType() != null && ex.getRequiredType().equals(TransactionType.class)) {
@@ -103,5 +103,45 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
-
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponseDto> handleIllegalArgumentException(IllegalArgumentException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_QUERY_PARAMETER",
+                ex.getMessage() // 서비스에서 던진 메시지를 그대로 사용
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDto> handleYearAndMonthTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_QUERY_PARAMETER",
+                "연도와 월은 유효한 숫자여야 합니다."
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+    @ExceptionHandler(LedgerEntryNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleLedgerEntryNotFoundException(LedgerEntryNotFoundException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.NOT_FOUND.value(),
+                "LEDGER_ENTRY_NOT_FOUND",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponseDto> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        // PathVariable 이름이 'id'인 경우 더 구체적인 메시지 제공
+        if ("id".equals(ex.getName())) {
+            ErrorResponseDto error = new ErrorResponseDto(
+                    HttpStatus.BAD_REQUEST.value(),
+                    "INVALID_ID_FORMAT",
+                    "ID는 숫자 형식이어야 합니다."
+            );
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
+        // 그 외 다른 타입 불일치 오류 처리 ...
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // 간단한 처리
+    }
 }

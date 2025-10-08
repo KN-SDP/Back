@@ -1,10 +1,14 @@
 package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.CreateAccountDto;
+import com.knusdp.SmartLedger.dto.LedgerResponseDto;
+import com.knusdp.SmartLedger.dto.UpdateLedgerRequestDto;
 import com.knusdp.SmartLedger.entity.AccountBook;
 import com.knusdp.SmartLedger.entity.AccountCategory;
 import com.knusdp.SmartLedger.entity.Member;
+import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.InvalidAmountException;
+import com.knusdp.SmartLedger.exception.LedgerEntryNotFoundException;
 import com.knusdp.SmartLedger.exception.MissingRequiredFieldException;
 import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.AccountBookRepository;
@@ -14,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -58,5 +64,72 @@ public class AccountBookService {
 
         accountBookRepository.save(accountBook);
     }
+    public List<LedgerResponseDto> findEntriesByCategory(Long memberId, String categoryName) {
+        List<AccountBook> entries = accountBookRepository.findByMemberAndCategoryName(memberId, categoryName);
 
+        return entries.stream()
+                .map(LedgerResponseDto::new)
+                .collect(Collectors.toList());
+    }
+    public List<LedgerResponseDto> findEntriesByTransactionType(Long memberId, TransactionType transactionType) {
+        List<AccountBook> entries = accountBookRepository.findByMemberIdAndTransactionType(memberId, transactionType);
+
+        return entries.stream()
+                .map(LedgerResponseDto::new)
+                .collect(Collectors.toList());
+    }
+    public List<LedgerResponseDto> findLedgerEntriesByYearAndMonth(Long memberId, int year, int month){
+        if (month < 1 || month > 12) {
+            throw new IllegalArgumentException("월(month)은 1에서 12 사이의 숫자여야 합니다.");
+        }
+
+        List<AccountBook> entries = accountBookRepository.findEntriesByYearAndMonth(memberId, year, month);
+
+        return entries.stream()
+                .map(LedgerResponseDto::new) // .map(entry -> new LedgerResponseDto(entry))와 동일
+                .collect(Collectors.toList());
+    }
+    public LedgerResponseDto findLedgerEntryById(Long memberId, Long transactionId) {
+        AccountBook entry = accountBookRepository.findByMemberIdAndTransactionId(memberId, transactionId)
+                .orElseThrow(() -> new LedgerEntryNotFoundException("해당 가계부 내역을 찾을 수 없습니다."));
+
+        return new LedgerResponseDto(entry);
+    }
+    @Transactional // 데이터를 변경하므로 @Transactional이 필수입니다.
+    public LedgerResponseDto updateLedgerEntry(Long memberId, Long transactionId, UpdateLedgerRequestDto dto) {
+        AccountBook entryToUpdate = accountBookRepository.findByMemberIdAndTransactionId(memberId, transactionId)
+                .orElseThrow(() -> new LedgerEntryNotFoundException("해당 가계부 내역을 찾을 수 없습니다."));
+
+        if (dto.getDate() != null) {
+            entryToUpdate.setTransactionDate(dto.getDate());
+        }
+        if (dto.getDescription() != null) {
+            entryToUpdate.setDescription(dto.getDescription());
+        }
+        if (dto.getAmount() != null) {
+            if (dto.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidAmountException("금액은 0보다 커야 합니다.");
+            }
+            entryToUpdate.setAmount(dto.getAmount());
+        }
+        if (dto.getTransactionType() != null) {
+            entryToUpdate.setTransactionType(dto.getTransactionType());
+        }
+        if (dto.getPaymentType() != null) {
+            entryToUpdate.setPaymentType(dto.getPaymentType());
+        }
+        if (dto.getCategoryId() != null) {
+            AccountCategory newCategory = categoryRepository.findById(dto.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다."));
+            entryToUpdate.setCategory(newCategory);
+        }
+        return new LedgerResponseDto(entryToUpdate);
+    }
+    @Transactional
+    public void deleteLedgerEntry(Long memberId, Long transactionId) {
+        AccountBook entryToDelete = accountBookRepository.findByMemberIdAndTransactionId(memberId, transactionId)
+                .orElseThrow(() -> new LedgerEntryNotFoundException("해당 가계부 내역을 찾을 수 없습니다."));
+
+        accountBookRepository.delete(entryToDelete);
+    }
 }

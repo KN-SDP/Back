@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AccountBookRepository extends JpaRepository<AccountBook, Long> {
@@ -19,4 +20,15 @@ public interface AccountBookRepository extends JpaRepository<AccountBook, Long> 
             @Param("categoryName") String categoryName
     );
     List<AccountBook> findByMemberIdAndTransactionType(Long memberId, TransactionType transactionType);
+
+    @Query("SELECT ab FROM AccountBook ab " +
+            "WHERE ab.member.id = :memberId " +
+            "AND YEAR(ab.transactionDate) = :year " +
+            "AND MONTH(ab.transactionDate) = :month")
+    List<AccountBook> findEntriesByYearAndMonth(
+            @Param("memberId") Long memberId,
+            @Param("year") int year,
+            @Param("month") int month
+    );
+    Optional<AccountBook> findByMemberIdAndTransactionId(Long memberId, Long transactionId);
 }
