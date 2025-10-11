@@ -35,7 +35,7 @@ public class LedgerController {
     }
 
     @Transactional(readOnly = true)
-    @GetMapping
+    @GetMapping(params = "category")
     public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByCategory(
             @RequestParam("category") String categoryName
     ) {
@@ -63,7 +63,7 @@ public class LedgerController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping
+    @GetMapping(params = {"year", "month"})
     public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByYearAndMonth(
             @RequestParam("year") int year,
             @RequestParam("month") int month

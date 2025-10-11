@@ -87,18 +87,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponseDto> handleTransactionTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        String message;
-        // TransactionType 변환 오류일 경우 더 구체적인 메시지 제공
-        if (ex.getRequiredType() != null && ex.getRequiredType().equals(TransactionType.class)) {
-            message = "거래 타입은 'INCOME', 'EXPENSE', 'SAVING', 'TRANSFER' 중 하나여야 합니다.";
-        } else {
-            message = "요청 파라미터의 형식이 올바르지 않습니다.";
-        }
+    public ResponseEntity<ErrorResponseDto> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        String errorCode = "INVALID_PARAMETER_FORMAT";
+        String message = "요청 파라미터의 형식이 올바르지 않습니다.";
 
+        // 예외가 발생한 파라미터의 이름을 확인하여 메시지를 분기 처리
+        String parameterName = ex.getName();
+
+        if ("id".equals(parameterName) || "transactionId".equals(parameterName) || "categoryId".equals(parameterName)) {
+            errorCode = "INVALID_ID_FORMAT";
+            message = "ID는 숫자 형식이어야 합니다.";
+        } else if ("year".equals(parameterName) || "month".equals(parameterName)) {
+            errorCode = "INVALID_DATE_PARAMETER";
+            message = "연도와 월은 유효한 숫자여야 합니다.";
+        } else if ("type".equals(parameterName) || "transactionType".equals(parameterName)) {
+            errorCode = "INVALID_TRANSACTION_TYPE";
+            message = "거래 타입은 'INCOME', 'EXPENSE', 'SAVING', 'TRANSFER' 중 하나여야 합니다.";
+        }
         ErrorResponseDto error = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
-                "INVALID_QUERY_PARAMETER",
+                errorCode,
                 message
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
@@ -123,15 +131,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponseDto> handleYearAndMonthTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        ErrorResponseDto error = new ErrorResponseDto(
-                HttpStatus.BAD_REQUEST.value(),
-                "INVALID_QUERY_PARAMETER",
-                "연도와 월은 유효한 숫자여야 합니다."
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-    }
+
     @ExceptionHandler(LedgerEntryNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleLedgerEntryNotFoundException(LedgerEntryNotFoundException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -140,19 +140,5 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
-    }
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponseDto> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        // PathVariable 이름이 'id'인 경우 더 구체적인 메시지 제공
-        if ("id".equals(ex.getName())) {
-            ErrorResponseDto error = new ErrorResponseDto(
-                    HttpStatus.BAD_REQUEST.value(),
-                    "INVALID_ID_FORMAT",
-                    "ID는 숫자 형식이어야 합니다."
-            );
-            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
-        }
-        // 그 외 다른 타입 불일치 오류 처리 ...
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST); // 간단한 처리
     }
 }
