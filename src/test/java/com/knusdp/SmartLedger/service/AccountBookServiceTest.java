@@ -24,19 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
-class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테스트하므로 LedgerServiceTest가 더 적절합니다.
+class AccountBookServiceTest {
 
-    @Autowired
-    private AccountBookService accountBookService;
-
-    @Autowired
-    private MemberRepository memberRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private AccountBookRepository accountBookRepository;
+    @Autowired private AccountBookService accountBookService;
+    @Autowired private MemberRepository memberRepository;
+    @Autowired private CategoryRepository categoryRepository;
+    @Autowired private AccountBookRepository accountBookRepository;
 
     private Member testUser;
     private AccountCategory testCategory;
@@ -72,17 +65,17 @@ class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테�
         );
 
         // when
-        // 반환값이 없으므로 변수에 할당하지 않습니다.
+        // 반환값이 없으므로 변수에 할당하지 않음
         accountBookService.createLedgerEntry(testUser.getId(), dto);
 
         // then
-        // DB에서 직접 데이터를 조회하여 검증합니다.
+        // DB에서 직접 데이터를 조회하여 검증
         List<AccountBook> entries = accountBookRepository.findAll();
-        assertThat(entries).hasSize(1); // 데이터가 1개 저장되었는지 확인
+        assertThat(entries).hasSize(1);
 
-        AccountBook savedEntry = entries.get(0); // 저장된 첫 번째 데이터
+        AccountBook savedEntry = entries.get(0);
         assertThat(savedEntry.getDescription()).isEqualTo("점심 식사");
-        assertThat(savedEntry.getAmount()).isEqualTo(new BigDecimal("9000")); //
+        assertThat(savedEntry.getAmount()).isEqualByComparingTo("9000");
         assertThat(savedEntry.getMember().getId()).isEqualTo(testUser.getId());
         assertThat(savedEntry.getCategory().getCategoryId()).isEqualTo(testCategory.getCategoryId());
     }
@@ -101,11 +94,8 @@ class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테�
         );
 
         // when & then
-        assertThrows(InvalidAmountException.class, () -> {
-            accountBookService.createLedgerEntry(testUser.getId(), dto);
-        });
+        assertThrows(InvalidAmountException.class, () -> accountBookService.createLedgerEntry(testUser.getId(), dto));
     }
-
 
     @Test
     @DisplayName("가계부 내역 추가 실패 - 금액이 0 이하일 경우")
@@ -115,10 +105,7 @@ class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테�
                 LocalDate.now(), "Test", BigDecimal.ZERO, TransactionType.EXPENSE, PaymentType.CASH, testCategory.getCategoryId());
 
         // when & then
-        // 예외 발생 여부만 확인하면 되므로 이 테스트는 수정할 필요가 없습니다.
-        assertThrows(InvalidAmountException.class, () -> {
-            accountBookService.createLedgerEntry(testUser.getId(), dto);
-        });
+        assertThrows(InvalidAmountException.class, () -> accountBookService.createLedgerEntry(testUser.getId(), dto));
     }
 
     @Test
@@ -130,10 +117,7 @@ class AccountBookServiceTest { // 테스트 클래스 이름은 Service를 테�
                 LocalDate.now(), "Test", new BigDecimal("5000"), TransactionType.EXPENSE, PaymentType.CASH, nonExistentCategoryId);
 
         // when & then
-        // 예외 발생 여부만 확인하면 되므로 이 테스트는 수정할 필요가 없습니다.
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            accountBookService.createLedgerEntry(testUser.getId(), dto);
-        });
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> accountBookService.createLedgerEntry(testUser.getId(), dto));
         assertThat(exception.getMessage()).isEqualTo("카테고리를 찾을 수 없습니다.");
     }
 }
