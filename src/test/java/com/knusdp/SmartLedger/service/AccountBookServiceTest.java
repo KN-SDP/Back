@@ -1,10 +1,12 @@
 package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.CreateAccountDto;
+import com.knusdp.SmartLedger.dto.UpdateLedgerRequestDto;
 import com.knusdp.SmartLedger.entity.*;
 import com.knusdp.SmartLedger.exception.InvalidAmountException;
-import com.knusdp.SmartLedger.repository.CategoryRepository;
+import com.knusdp.SmartLedger.exception.LedgerEntryNotFoundException;
 import com.knusdp.SmartLedger.repository.AccountBookRepository;
+import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -51,10 +53,10 @@ class AccountBookServiceTest {
                 .build());
     }
 
+    //  기존 테스트 유지
     @Test
     @DisplayName("가계부 내역 추가 성공")
     void createLedgerEntry_success() {
-        // given
         CreateAccountDto dto = new CreateAccountDto(
                 LocalDate.of(2025, 9, 27),
                 "점심 식사",
@@ -64,12 +66,8 @@ class AccountBookServiceTest {
                 testCategory.getCategoryId()
         );
 
-        // when
-        // 반환값이 없으므로 변수에 할당하지 않음
         accountBookService.createLedgerEntry(testUser.getId(), dto);
 
-        // then
-        // DB에서 직접 데이터를 조회하여 검증
         List<AccountBook> entries = accountBookRepository.findAll();
         assertThat(entries).hasSize(1);
 
@@ -83,7 +81,6 @@ class AccountBookServiceTest {
     @Test
     @DisplayName("가계부 내역 추가 실패 - 금액이 소수점일 경우")
     void createLedgerEntry_fail_decimalAmount() {
-        // given
         CreateAccountDto dto = new CreateAccountDto(
                 LocalDate.now(),
                 "소수점 입력",
@@ -93,31 +90,130 @@ class AccountBookServiceTest {
                 testCategory.getCategoryId()
         );
 
-        // when & then
         assertThrows(InvalidAmountException.class, () -> accountBookService.createLedgerEntry(testUser.getId(), dto));
     }
 
     @Test
     @DisplayName("가계부 내역 추가 실패 - 금액이 0 이하일 경우")
     void createLedgerEntry_fail_invalidAmount() {
-        // given
         CreateAccountDto dto = new CreateAccountDto(
                 LocalDate.now(), "Test", BigDecimal.ZERO, TransactionType.EXPENSE, PaymentType.CASH, testCategory.getCategoryId());
 
-        // when & then
         assertThrows(InvalidAmountException.class, () -> accountBookService.createLedgerEntry(testUser.getId(), dto));
     }
 
     @Test
     @DisplayName("가계부 내역 추가 실패 - 존재하지 않는 카테고리 ID")
     void createLedgerEntry_fail_categoryNotFound() {
-        // given
         Long nonExistentCategoryId = 9999L;
         CreateAccountDto dto = new CreateAccountDto(
                 LocalDate.now(), "Test", new BigDecimal("5000"), TransactionType.EXPENSE, PaymentType.CASH, nonExistentCategoryId);
 
-        // when & then
         RuntimeException exception = assertThrows(RuntimeException.class, () -> accountBookService.createLedgerEntry(testUser.getId(), dto));
         assertThat(exception.getMessage()).isEqualTo("카테고리를 찾을 수 없습니다.");
+    }
+
+    //  추가 테스트 1 — 단일 내역 조회
+    @Test
+    @DisplayName("가계부 단일 내역 조회 성공")
+    void findLedgerEntryById_success() {
+        // given
+        AccountBook entry = accountBookRepository.save(AccountBook.builder()
+                .transactionDate(LocalDate.now())
+                .description("커피")
+                .amount(new BigDecimal("4500"))
+                .transactionType(TransactionType.EXPENSE)
+                .paymentType(PaymentType.CASH)
+                .category(testCategory)
+                .member(testUser)
+                .build());
+
+        // when
+        var result = accountBookService.findLedgerEntryById(testUser.getId(), entry.getTransactionId());
+
+        // then
+        assertThat(result.getDescription()).isEqualTo("커피");
+        assertThat(result.getAmount()).isEqualByComparingTo("4500");
+    }
+
+    //  추가 테스트 2 — 내역 수정 성공
+    @Test
+    @DisplayName("가계부 내역 수정 성공")
+    void updateLedgerEntry_success() {
+        // given
+        AccountBook entry = accountBookRepository.save(AccountBook.builder()
+                .transactionDate(LocalDate.now())
+                .description("커피")
+                .amount(new BigDecimal("4500"))
+                .transactionType(TransactionType.EXPENSE)
+                .paymentType(PaymentType.CASH)
+                .category(testCategory)
+                .member(testUser)
+                .build());
+
+        UpdateLedgerRequestDto dto = new UpdateLedgerRequestDto();
+        dto.setDescription("수정된 커피");
+        dto.setAmount(new BigDecimal("5000"));
+
+        // when
+        var updated = accountBookService.updateLedgerEntry(testUser.getId(), entry.getTransactionId(), dto);
+
+        // then
+        assertThat(updated.getDescription()).isEqualTo("수정된 커피");
+        assertThat(updated.getAmount()).isEqualByComparingTo("5000");
+    }
+
+    //  추가 테스트 3 — 삭제 성공
+    @Test
+    @DisplayName("가계부 내역 삭제 성공")
+    void deleteLedgerEntry_success() {
+        // given
+        AccountBook entry = accountBookRepository.save(AccountBook.builder()
+                .transactionDate(LocalDate.now())
+                .description("지우기 테스트")
+                .amount(new BigDecimal("7000"))
+                .transactionType(TransactionType.EXPENSE)
+                .paymentType(PaymentType.CASH)
+                .category(testCategory)
+                .member(testUser)
+                .build());
+
+        // when
+        accountBookService.deleteLedgerEntry(testUser.getId(), entry.getTransactionId());
+
+        // then
+        List<AccountBook> remaining = accountBookRepository.findAll();
+        assertThat(remaining).isEmpty();
+    }
+
+    // 추가 테스트 4 — 존재하지 않는 내역 조회 시 예외
+    @Test
+    @DisplayName("존재하지 않는 내역 조회 시 예외 발생")
+    void findLedgerEntryById_fail_notFound() {
+        assertThrows(LedgerEntryNotFoundException.class,
+                () -> accountBookService.findLedgerEntryById(testUser.getId(), 9999L));
+    }
+
+    // 추가 테스트 5 — 특정 연도·월로 조회 성공
+    @Test
+    @DisplayName("특정 연도와 월로 가계부 내역 조회 성공")
+    void findLedgerEntriesByYearAndMonth_success() {
+        // given
+        accountBookRepository.save(AccountBook.builder()
+                .transactionDate(LocalDate.of(2025, 10, 10))
+                .description("점심")
+                .amount(new BigDecimal("8000"))
+                .transactionType(TransactionType.EXPENSE)
+                .paymentType(PaymentType.CASH)
+                .category(testCategory)
+                .member(testUser)
+                .build());
+
+        // when
+        var result = accountBookService.findLedgerEntriesByYearAndMonth(testUser.getId(), 2025, 10);
+
+        // then
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getDescription()).isEqualTo("점심");
     }
 }
