@@ -39,9 +39,16 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/users/login",
                                 "/users/sign-up",
+                                "/swagger-ui/*",
+                                "/swagger-ui.html",
                                 "/users/recover-id",
                                 "/users/recover-password",
-                                "/users/recover-password/reset"
+                                "/users/recover-password/reset",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         // 2. 위에서 허용한 URL을 제외한 나머지 모든 요청은 인증이 필요합니다.
                         //    (예: /users/changeNickname, /ledger 등)
