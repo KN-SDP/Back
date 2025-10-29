@@ -21,8 +21,6 @@ public class OpenApiConfig {
                         .title("SmartLedger API")
                         .version("1.0.0") // 기존 버전 유지 또는 v1으로 변경
                         .description("SmartLedger API 문서"))
-                // 모든 API 엔드포인트에 'bearerAuth' 보안 요구사항 추가
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 // 'bearerAuth'라는 이름의 보안 스키마 정의
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()

@@ -6,6 +6,7 @@ import com.knusdp.SmartLedger.dto.UpdateLedgerRequestDto;
 import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.service.AccountBookService;
 import com.knusdp.SmartLedger.service.FindInFoService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/ledger")
+@SecurityRequirement(name = "bearerAuth")
 public class LedgerController {
     private final AccountBookService accountBookService;
     private final FindInFoService findInFoService;
