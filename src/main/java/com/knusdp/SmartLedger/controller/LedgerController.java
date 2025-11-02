@@ -2,6 +2,7 @@ package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.CreateAccountDto;
 import com.knusdp.SmartLedger.dto.LedgerResponseDto;
+import com.knusdp.SmartLedger.dto.LedgerSearchRequestDto;
 import com.knusdp.SmartLedger.dto.UpdateLedgerRequestDto;
 import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.service.AccountBookService;
@@ -35,7 +36,31 @@ public class LedgerController {
 
         return ResponseEntity.noContent().build();
     }
+    //통합 조회 api
+    @GetMapping
+    public ResponseEntity<List<LedgerResponseDto>> searchLedgerEntries(
+            // @RequestParam(required = false)를 사용하여 모든 파라미터를 선택적으로 받음
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) TransactionType type
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = Long.parseLong(authentication.getName());
 
+        // 1. 파라미터를 DTO에 담기
+        LedgerSearchRequestDto searchDto = new LedgerSearchRequestDto();
+        searchDto.setYear(year);
+        searchDto.setMonth(month);
+        searchDto.setCategoryName(category);
+        searchDto.setTransactionType(type);
+
+        // 2. 서비스 호출
+        List<LedgerResponseDto> response = accountBookService.findLedgerEntriesByCriteria(userId, searchDto);
+
+        return ResponseEntity.ok(response);
+    }
+    //카테고리별 조회 api
     @Transactional(readOnly = true)
     @GetMapping(params = "category")
     public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByCategory(
@@ -50,7 +75,7 @@ public class LedgerController {
 
         return ResponseEntity.ok(response);
     }
-
+    //거래타입별 조회 api
     @GetMapping(params = "type") // 'type' 파라미터가 있을 때만 이 메소드가 호출됨
     public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByTransactionType(
             @RequestParam("type") TransactionType transactionType
@@ -64,7 +89,7 @@ public class LedgerController {
 
         return ResponseEntity.ok(response);
     }
-
+    //년월별 조회 api
     @GetMapping(params = {"year", "month"})
     public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByYearAndMonth(
             @RequestParam("year") int year,
@@ -78,6 +103,7 @@ public class LedgerController {
         // 조회 결과를 200 OK 상태와 함께 반환
         return ResponseEntity.ok(response);
     }
+    //거래내역 상세 조회 api
     @GetMapping("/{id}")
     public ResponseEntity<LedgerResponseDto> getLedgerEntry(@PathVariable("id") Long transactionId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -87,6 +113,7 @@ public class LedgerController {
 
         return ResponseEntity.ok(response);
     }
+    //거래내역 업데이트 api
     @PatchMapping("/{id}")
     public ResponseEntity<LedgerResponseDto> updateLedgerEntry(
             @PathVariable("id") Long transactionId,
@@ -99,6 +126,7 @@ public class LedgerController {
 
         return ResponseEntity.ok(response);
     }
+    //거래내역삭제 api
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, Object>> deleteLedgerEntry(@PathVariable("id") Long transactionId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
