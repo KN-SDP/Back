@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
+//로그인 응답 dto
 @Getter
 @Builder
 @NoArgsConstructor
