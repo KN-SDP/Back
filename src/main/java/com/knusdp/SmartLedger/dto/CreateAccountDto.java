@@ -14,7 +14,7 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-//지출 추가 dto
+//거래내역 추가 dto
 public class CreateAccountDto {
     private LocalDate date;
     private String description;
