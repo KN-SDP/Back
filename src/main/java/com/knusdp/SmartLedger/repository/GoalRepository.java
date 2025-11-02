@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface GoalRepository extends JpaRepository<Goal, Long> {
-    List<Goal> findByMember_UserIdOrderByCreatedAtDesc(Long userId);
-    Optional<Goal> findByMember_UserIdAndGoalId(Long userId, Long goalId);
+    List<Goal> findByMember_IdOrderByCreatedAtDesc(Long userId);
+    Optional<Goal> findByMember_IdAndGoalId(Long userId, Long goalId);
 }

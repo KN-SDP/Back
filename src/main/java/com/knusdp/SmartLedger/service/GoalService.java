@@ -45,7 +45,7 @@ public class GoalService {
     }
     public List<GoalResponseDto> findGoalsByMemberId(Long memberId) {
         // 1. 리포지토리 호출하여 특정 사용자의 목표 목록 조회
-        List<Goal> goals = goalRepository.findByMember_UserIdOrderByCreatedAtDesc(memberId);
+        List<Goal> goals = goalRepository.findByMember_IdOrderByCreatedAtDesc(memberId);
 
         // 2. 조회된 엔티티 목록을 DTO 목록으로 변환
         return goals.stream()
@@ -54,7 +54,7 @@ public class GoalService {
     }
     public GoalResponseDto findGoalById(Long memberId, Long goalId) {
         // 1. 리포지토리 호출 (본인 소유의 목표인지 함께 확인)
-        Goal goal = goalRepository.findByMember_UserIdAndGoalId(memberId, goalId)
+        Goal goal = goalRepository.findByMember_IdAndGoalId(memberId, goalId)
                 .orElseThrow(() -> new GoalNotFoundException("해당 목표를 찾을 수 없습니다."));
 
         // 2. 조회된 엔티티를 DTO로 변환하여 반환
@@ -63,7 +63,7 @@ public class GoalService {
     @Transactional // 데이터 변경 작업
     public GoalResponseDto updateGoal(Long memberId, Long goalId, UpdateGoalRequestDto dto) {
         // 1. 본인 소유의 목표인지 확인하며 엔티티 조회
-        Goal goalToUpdate = goalRepository.findByMember_UserIdAndGoalId(memberId, goalId)
+        Goal goalToUpdate = goalRepository.findByMember_IdAndGoalId(memberId, goalId)
                 .orElseThrow(() -> new GoalNotFoundException("해당 목표를 찾을 수 없습니다."));
 
         // 2. DTO에 값이 있는 필드만 선택적으로 업데이트
@@ -100,7 +100,7 @@ public class GoalService {
     @Transactional // 데이터 변경 작업
     public void deleteGoal(Long memberId, Long goalId) {
         // 1. 본인 소유의 목표인지 확인하며 엔티티 조회
-        Goal goalToDelete = goalRepository.findByMember_UserIdAndGoalId(memberId, goalId)
+        Goal goalToDelete = goalRepository.findByMember_IdAndGoalId(memberId, goalId)
                 .orElseThrow(() -> new GoalNotFoundException("해당 목표를 찾을 수 없습니다."));
 
         // 2. 조회된 엔티티 삭제
