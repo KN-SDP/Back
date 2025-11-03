@@ -4,6 +4,7 @@ import com.knusdp.SmartLedger.dto.*;
 import com.knusdp.SmartLedger.service.AuthService;
 import com.knusdp.SmartLedger.service.FindInFoService;
 import com.knusdp.SmartLedger.service.MemberService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -102,6 +103,7 @@ public class AuthController {
     /* 닉네임 변경 */
     @Transactional
     @PatchMapping("/nickname")
+    @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<String> updateNickname(@RequestBody UserInFoDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());

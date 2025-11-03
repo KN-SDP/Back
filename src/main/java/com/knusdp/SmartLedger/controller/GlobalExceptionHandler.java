@@ -3,6 +3,7 @@ package com.knusdp.SmartLedger.controller;
 import com.knusdp.SmartLedger.dto.ErrorResponseDto;
 import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -10,7 +11,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-@RestControllerAdvice
+@Slf4j
+@RestControllerAdvice(basePackages = "com.knusdp.SmartLedger.controller")
 public class GlobalExceptionHandler {
 
     // EmailDuplicateException이 발생하면 이 메소드가 실행됩니다.
@@ -114,6 +116,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
+        log.error("Unexpected error occurred: ", ex);
         ErrorResponseDto error = new ErrorResponseDto(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "INTERNAL_SERVER_ERROR",
