@@ -31,7 +31,6 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Transactional
-@ActiveProfiles("test")
 class AuthControllerTest {
 
     @Autowired private MemberRepository memberRepository;
