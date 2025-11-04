@@ -9,6 +9,7 @@ import com.knusdp.SmartLedger.exception.UserNotFoundException;
 import com.knusdp.SmartLedger.repository.GoalRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.GoalService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid; // @Valid 사용을 위해 import
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/goals") // 목표 관련 API의 기본 경로
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
+
 public class GoalController {
 
     private final GoalService goalService;
