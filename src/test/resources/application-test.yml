@@ -6,15 +6,15 @@ spring:
       enabled: true
   jpa:
     hibernate:
-      ddl-auto: create
-    show-sql: true
+      ddl-auto: create  # 자동 테이블 생성
+    show-sql: true       # 실행된 쿼리 로그 출력
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
   application:
     name: smartLedger
   datasource:
-    url: jdbc:mysql://43.202.209.189:3306/smartledger_test?serverTimezone=Asia/Seoul&useSSL=false
+    url: jdbc:mysql://43.202.209.189:3306/smartledger?serverTimezone=Asia/Seoul
     username: smartknu3707
     password: smartknu3707
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -35,7 +35,7 @@ management:
     health:
       show-details: when_authorized   # 인증된 사용자만 DB 상태 같은 세부정보 확인 가능
 jwt:
-  secret-key: '59abad1c1fe24ec91432ed2acf2859e12101f9f670f57feec185c60c8bf7ae57'
+  secret-key: 'kXyZ/AbCdEfGhIjKlMnOpQrStUvWxYz/aBcDeFgH123iJkL='
 crypto:
-  secret-key: 9Sfglzkf49X3zD3O
-  init-vector: Khog/ugiJii+A3YH
+  secret-key: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
+  init-vector: a1b2c3d4e5f6a1b2
