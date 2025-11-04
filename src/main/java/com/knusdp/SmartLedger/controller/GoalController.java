@@ -26,6 +26,7 @@ import java.util.Map;
 @RequestMapping("/goals") // 목표 관련 API의 기본 경로
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+
 public class GoalController {
 
     private final GoalService goalService;
