@@ -72,13 +72,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "https://knusdpsl.mooo.com", // HTTPS를 사용하는 실제 프론트엔드 도메인
-                "http://localhost:3000"     // 로컬 React 개발용
-        ));
+        configuration.setAllowedOrigins(List.of("*")); // 모든 출처 허용
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowedHeaders(List.of("*")); // 모든 헤더 허용
-        configuration.setAllowCredentials(true); // allowedOrigins가 "*"일 때는 false로 설정해야 함
+        configuration.setAllowCredentials(false); // allowedOrigins가 "*"일 때는 false로 설정해야 함
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 위 설정 적용
