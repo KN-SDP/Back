@@ -14,7 +14,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Getter
@@ -67,20 +69,43 @@ public class MemberService {
 
 
     // 비밀번호 재설정
-    public boolean resetPassword(String email, String newPassword, String checkedPassword) {
-        if (!newPassword.equals(checkedPassword)) {
+    public String issueResetToken(String email, String username, String birth, String phone) {
+        LocalDate birthDate = LocalDate.parse(birth);
+        String encryptedPhone = cryptoUtil.encrypt(phone);
+
+        Optional<Member> optionalMember = memberRepository.findByEmailAndUsernameAndBirthAndPhoneNumber(
+                email, username, birthDate, encryptedPhone
+        );
+
+        if (optionalMember.isEmpty()) return null;
+
+        Member member = optionalMember.get();
+        String token = UUID.randomUUID().toString();
+        member.setResetToken(token);
+        // 10분 지난 토큰 무효처리
+        member.setResetTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        memberRepository.save(member);
+
+        return token;
+    }
+
+    public boolean resetPasswordByToken(String token, String newPassword, String checkedPassword) {
+        if (!newPassword.equals(checkedPassword))
             throw new IllegalArgumentException("PasswordMismatch");
+
+        Optional<Member> optionalMember = memberRepository.findByResetToken(token);
+        if (optionalMember.isEmpty()) return false;
+
+        Member member = optionalMember.get();
+
+        if (member.getResetTokenExpiry() == null || member.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            return false; // 만료된 토큰
         }
 
-        Optional<Member> member = memberRepository.findByEmail(email);
-        if (member.isPresent()) {
-            Member m = member.get();
-            m.setPassword(passwordEncoder.encode(newPassword));
-            memberRepository.save(m);
-            return true;
-        } else {
-            return false;
-        }
+        member.setPassword(passwordEncoder.encode(newPassword));
+        member.setResetToken(null);
+        memberRepository.save(member);
+        return true;
     }
     public void updateNickname(Long userId, String newNickname) {
         Member currentUser = memberRepository.findById(userId)

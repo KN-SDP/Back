@@ -7,9 +7,4 @@ import org.springframework.test.context.ActiveProfiles;
 @ActiveProfiles("test")
 @SpringBootTest
 class SmartLedgerApplicationTests {
-
-	@Test
-	void contextLoads() {
-	}
-
 }

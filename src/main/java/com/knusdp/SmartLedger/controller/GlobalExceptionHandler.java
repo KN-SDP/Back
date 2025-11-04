@@ -144,4 +144,13 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+    @ExceptionHandler(GoalNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleGoalNotFoundException(GoalNotFoundException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.NOT_FOUND.value(),
+                "GOAL_NOT_FOUND", // 에러 코드 변경
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
 }
