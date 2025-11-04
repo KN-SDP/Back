@@ -1,6 +1,6 @@
 # Dockerfile.dev
 
-FROM openjdk:21-jdk-slim
+FROM eclipse-temurin:21-jdk-jammy
 WORKDIR /app
 
 # build/libs/*.jar 대신 build/dependencies 폴더를 만들어 의존성을 분리하면
