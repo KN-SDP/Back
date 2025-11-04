@@ -15,11 +15,14 @@ import java.util.Optional;
 public interface AccountBookRepository extends JpaRepository<AccountBook, Long>, JpaSpecificationExecutor<AccountBook> {
     @Query("SELECT ab FROM AccountBook ab " +
             "WHERE ab.member.id = :memberId " +
+            "AND ab.transactionType = :transactionType " +
             "AND ab.category.categoryName = :categoryName")
-    List<AccountBook> findByMemberAndCategoryName(
+    List<AccountBook> findByMemberAndTransactionTypeAndCategoryName(
             @Param("memberId") Long memberId,
+            @Param("transactionType") TransactionType transactionType,
             @Param("categoryName") String categoryName
     );
+
     List<AccountBook> findByMemberIdAndTransactionType(Long memberId, TransactionType transactionType);
 
     @Query("SELECT ab FROM AccountBook ab " +

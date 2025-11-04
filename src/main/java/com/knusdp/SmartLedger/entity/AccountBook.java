@@ -25,8 +25,8 @@ public class AccountBook {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal amount; // DECIMAL(15, 2) -> BigDecimal
+    @Column(nullable = false, precision = 15, scale = 0)
+    private BigDecimal amount; // DECIMAL(15, 0) -> BigDecimal
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

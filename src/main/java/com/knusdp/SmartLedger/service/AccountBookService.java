@@ -68,19 +68,18 @@ public class AccountBookService {
         accountBookRepository.save(accountBook);
     }
     //통합 조회
+    // 통합 조회
     @Transactional(readOnly = true)
     public List<LedgerResponseDto> findLedgerEntriesByCriteria(Long memberId, LedgerSearchRequestDto dto) {
 
-        // 1. 기본 조건 (사용자 ID) 설정
         Specification<AccountBook> spec = Specification.where(AccountBookSpecification.hasMemberId(memberId));
 
-        // 2. DTO에 값이 있을 때만 (null이 아닐 때만) 조건을 동적으로 추가
         if (dto.getYear() != null) {
             spec = spec.and(AccountBookSpecification.hasYear(dto.getYear()));
         }
         if (dto.getMonth() != null) {
             if (dto.getMonth() < 1 || dto.getMonth() > 12) {
-                throw new IllegalArgumentException("월(month)은 1에서 12 사이의 숫자여야 합니다.");
+                throw new IllegalArgumentException("월(month)은 1~12 사이여야 합니다.");
             }
             spec = spec.and(AccountBookSpecification.hasMonth(dto.getMonth()));
         }
@@ -91,23 +90,30 @@ public class AccountBookService {
             spec = spec.and(AccountBookSpecification.hasCategoryName(dto.getCategoryName()));
         }
 
-        // 3. 조합된 Specification으로 리포지토리 조회
         List<AccountBook> entries = accountBookRepository.findAll(spec);
 
-        // 4. DTO로 변환하여 반환
         return entries.stream()
                 .map(LedgerResponseDto::new)
                 .collect(Collectors.toList());
     }
-    //카테고리 조회
-    public List<LedgerResponseDto> findEntriesByCategory(Long memberId, String categoryName) {
-        List<AccountBook> entries = accountBookRepository.findByMemberAndCategoryName(memberId, categoryName);
+
+    //  카테고리별 조회
+    public List<LedgerResponseDto> findEntriesByCategory(
+            Long memberId,
+            TransactionType transactionType,
+            String categoryName) {
+
+        List<AccountBook> entries =
+                accountBookRepository.findByMemberAndTransactionTypeAndCategoryName(
+                        memberId, transactionType, categoryName
+                );
 
         return entries.stream()
                 .map(LedgerResponseDto::new)
                 .collect(Collectors.toList());
     }
-    //거래타입별 조회
+
+    // 거래타입별 조회 (그대로 가능)
     public List<LedgerResponseDto> findEntriesByTransactionType(Long memberId, TransactionType transactionType) {
         List<AccountBook> entries = accountBookRepository.findByMemberIdAndTransactionType(memberId, transactionType);
 
@@ -115,18 +121,20 @@ public class AccountBookService {
                 .map(LedgerResponseDto::new)
                 .collect(Collectors.toList());
     }
-    //년월별 조회
-    public List<LedgerResponseDto> findLedgerEntriesByYearAndMonth(Long memberId, int year, int month){
+
+    // 년월별 조회 (그대로 가능)
+    public List<LedgerResponseDto> findLedgerEntriesByYearAndMonth(Long memberId, int year, int month) {
         if (month < 1 || month > 12) {
-            throw new IllegalArgumentException("월(month)은 1에서 12 사이의 숫자여야 합니다.");
+            throw new IllegalArgumentException("월(month)은 1~12 사이여야 합니다.");
         }
 
         List<AccountBook> entries = accountBookRepository.findEntriesByYearAndMonth(memberId, year, month);
 
         return entries.stream()
-                .map(LedgerResponseDto::new) // .map(entry -> new LedgerResponseDto(entry))와 동일
+                .map(LedgerResponseDto::new)
                 .collect(Collectors.toList());
     }
+
     //거래내역 상세조회
     public LedgerResponseDto findLedgerEntryById(Long memberId, Long transactionId) {
         AccountBook entry = accountBookRepository.findByMemberIdAndTransactionId(memberId, transactionId)
@@ -173,4 +181,5 @@ public class AccountBookService {
 
         accountBookRepository.delete(entryToDelete);
     }
+
 }

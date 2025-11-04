@@ -60,21 +60,24 @@ public class LedgerController {
 
         return ResponseEntity.ok(response);
     }
-    //카테고리별 조회 api
+    // 카테고리 + 거래유형별 조회 api
     @Transactional(readOnly = true)
-    @GetMapping(params = "category")
-    public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByCategory(
-            @RequestParam("category") String categoryName
+    @GetMapping(params = {"category", "type"})
+    public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByCategoryAndType(
+            @RequestParam("category") String categoryName,
+            @RequestParam("type") TransactionType transactionType
     ) {
-        // 토큰에서 현재 사용자 ID 추출
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-        // 서비스 호출
-        List<LedgerResponseDto> response = accountBookService.findEntriesByCategory(userId, categoryName);
+        // 서비스 호출 (transactionType 포함)
+        List<LedgerResponseDto> response =
+                accountBookService.findEntriesByCategory(userId, transactionType, categoryName);
 
         return ResponseEntity.ok(response);
     }
+
+
     //거래타입별 조회 api
     @GetMapping(params = "type") // 'type' 파라미터가 있을 때만 이 메소드가 호출됨
     public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByTransactionType(

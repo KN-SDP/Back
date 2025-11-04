@@ -19,8 +19,7 @@ public class AccountCategory {
     @Column(nullable = false, length = 20)
     private String categoryName;
 
-    // Member와의 관계 (userId FK)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId") // nullable = true (공용 카테고리 가능성)
-    private Member member;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TransactionType transactionType;
 }
