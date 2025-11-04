@@ -49,7 +49,6 @@ class AccountBookServiceTest {
 
         testCategory = categoryRepository.save(AccountCategory.builder()
                 .categoryName("식비")
-                .member(testUser)
                 .build());
     }
 
