@@ -6,6 +6,7 @@ import com.knusdp.SmartLedger.service.FindInFoService;
 import com.knusdp.SmartLedger.service.MemberService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -106,14 +106,12 @@ public class AuthController {
     @PatchMapping("/nickname")
     @SecurityRequirement(name = "bearerAuth")
     @Transactional
-    public ResponseEntity<Map<String, String>> updateNickname(@RequestBody ChangeNicknameDto request) {
+    public ResponseEntity<String> updateNickname(@Valid @RequestBody ChangeNicknameDto request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
         memberService.updateNickname(userId, request.getChange_nickname());
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "닉네임 변경이 완료되었습니다.");
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok("닉네임 변경이 완료되었습니다.");
     }
 }
