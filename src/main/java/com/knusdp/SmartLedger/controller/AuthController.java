@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -100,14 +102,18 @@ public class AuthController {
         }
     }
 
-    /* 닉네임 변경 */
-    @Transactional
+    //닉네임 변경
     @PatchMapping("/nickname")
     @SecurityRequirement(name = "bearerAuth")
-    public ResponseEntity<String> updateNickname(@RequestBody UserInFoDto dto) {
+    @Transactional
+    public ResponseEntity<Map<String, String>> updateNickname(@RequestBody ChangeNicknameDto request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-        memberService.updateNickname(userId, dto.getUserNickName());
-        return ResponseEntity.ok("닉네임이 성공적으로 변경되었습니다.");
+
+        memberService.updateNickname(userId, request.getChange_nickname());
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "닉네임 변경이 완료되었습니다.");
+        return ResponseEntity.ok(response);
     }
 }
