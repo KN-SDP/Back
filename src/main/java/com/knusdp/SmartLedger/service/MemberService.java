@@ -55,17 +55,17 @@ public class MemberService {
     }
 
 
-    // 사용자 정보 확인
-    public boolean validateMember(String email, String username, String birth, String phone) {
-        LocalDate birthDate = LocalDate.parse(birth);
-
-        // 평문을 암호화해서 비교
-        String encryptedPhone = cryptoUtil.encrypt(phone);
-
-        return memberRepository.findByEmailAndUsernameAndBirthAndPhoneNumber(
-                email, username, birthDate, encryptedPhone
-        ).isPresent();
-    }
+//    // 사용자 정보 확인
+//    public boolean validateMember(String email, String username, String birth, String phone) {
+//        LocalDate birthDate = LocalDate.parse(birth);
+//
+//        // 평문을 암호화해서 비교
+//        String encryptedPhone = cryptoUtil.encrypt(phone);
+//
+//        return memberRepository.findByEmailAndUsernameAndBirthAndPhoneNumber(
+//                email, username, birthDate, encryptedPhone
+//        ).isPresent();
+//    }
 
 
     // 비밀번호 재설정
@@ -107,17 +107,18 @@ public class MemberService {
         memberRepository.save(member);
         return true;
     }
+
     public void updateNickname(Long userId, String newNickname) {
-        Member currentUser = memberRepository.findById(userId)
+        Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
 
         memberRepository.findByNickname(newNickname)
-                .ifPresent(member -> {
-                    if (!member.getId().equals(currentUser.getId())) {
-                        throw new NickNameDuplicateException("이미 다른 사용자가 사용 중인 닉네임입니다.");
+                .ifPresent(existing -> {
+                    if (!existing.getId().equals(member.getId())) {
+                        throw new NickNameDuplicateException("이미 사용중인 닉네임입니다.");
                     }
                 });
 
-        currentUser.setNickname(newNickname);
+        member.setNickname(newNickname);
     }
 }
