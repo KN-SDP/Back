@@ -72,16 +72,15 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
-        configuration.setAllowedOrigins(List.of(
-                "https://knusdpsl.mooo.com/",   // React 기본 포트
-                "http://localhost:8081"
 
-        ));
-        configuration.setAllowCredentials(true); // JWT 인증 허용
+        //  테스트용 전체 개방
+        configuration.addAllowedOriginPattern("*");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 위 설정 적용
+        source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
