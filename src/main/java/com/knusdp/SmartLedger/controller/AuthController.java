@@ -13,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -102,6 +101,7 @@ public class AuthController {
         }
     }
 
+
     //닉네임 변경
     @PatchMapping("/nickname")
     @SecurityRequirement(name = "bearerAuth")
@@ -113,5 +113,6 @@ public class AuthController {
         memberService.updateNickname(userId, request.getChange_nickname());
 
         return ResponseEntity.ok("닉네임 변경이 완료되었습니다.");
+
     }
 }

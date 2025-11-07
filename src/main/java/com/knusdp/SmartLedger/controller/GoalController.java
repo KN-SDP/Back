@@ -32,7 +32,6 @@ public class GoalController {
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
 
-    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<String> createGoal(@Valid @RequestBody CreateGoalRequestDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -44,7 +43,7 @@ public class GoalController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("목표가 생성되었습니다");
     }
-    @SecurityRequirement(name = "bearerAuth")
+
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {
         // 토큰에서 현재 사용자 ID 추출
@@ -57,7 +56,7 @@ public class GoalController {
         // 조회 결과를 200 OK 상태와 함께 반환
         return ResponseEntity.ok(response);
     }
-    @SecurityRequirement(name = "bearerAuth")
+
     @GetMapping("/{id}")
     public ResponseEntity<GoalResponseDto> getGoal(@PathVariable("id") Long goalId) {
         // 토큰에서 현재 사용자 ID 추출
@@ -69,7 +68,7 @@ public class GoalController {
 
         return ResponseEntity.ok(response);
     }
-    @SecurityRequirement(name = "bearerAuth")
+
     @PatchMapping("/{id}")
     public ResponseEntity<GoalResponseDto> updateGoal(
             @PathVariable("id") Long goalId,
@@ -82,7 +81,7 @@ public class GoalController {
 
         return ResponseEntity.ok(updatedGoal); // 200 OK와 함께 수정된 목표 정보 반환
     }
-    @SecurityRequirement(name = "bearerAuth")
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteGoal(@PathVariable("id") Long goalId) { // 반환 타입을 Map으로 변경
         // 토큰에서 현재 사용자 ID 추출
