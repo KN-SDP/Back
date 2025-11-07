@@ -31,8 +31,8 @@ public class GoalController {
     private final GoalService goalService;
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
-  
-  
+
+    @PostMapping
     public ResponseEntity<String> createGoal(@Valid @RequestBody CreateGoalRequestDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());

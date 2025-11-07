@@ -102,6 +102,7 @@ public class AuthController {
     }
 
 
+    //닉네임 변경
     @PatchMapping("/nickname")
     @SecurityRequirement(name = "bearerAuth")
     @Transactional

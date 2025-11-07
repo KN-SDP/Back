@@ -46,12 +46,19 @@ public class JwtUtil {
     // JWT 검증
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(SECRET_KEY)
                     .build()
-                    .parseClaimsJws(token);
-            return true;
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            // 만료 시간 직접 확인
+            return !claims.getExpiration().before(new Date());
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("토큰 만료됨");
+            return false;
         } catch (JwtException e) {
+            System.out.println("JWT 검증 실패");
             return false;
         }
     }
