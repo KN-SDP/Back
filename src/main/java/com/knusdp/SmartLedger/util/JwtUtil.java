@@ -19,7 +19,7 @@ public class JwtUtil {
     @Value("${jwt.secret-key}")
     private String secretKeyString;
     private SecretKey SECRET_KEY;
-    private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
+    private static final long EXPIRATION_TIME = 1000 * 60* 60; // 1시간
 
     @PostConstruct
     public void init() {
@@ -46,12 +46,23 @@ public class JwtUtil {
     // JWT 검증
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(SECRET_KEY)
                     .build()
-                    .parseClaimsJws(token);
-            return true;
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            //  만료 시간 검증
+            return !claims.getExpiration().before(new Date());
+
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("JWT 만료");
+            return false;
+        } catch (io.jsonwebtoken.MalformedJwtException e) {
+            System.out.println("JWT 형식 오류");
+            return false;
         } catch (JwtException e) {
+            System.out.println("JWT 유효하지 않음");
             return false;
         }
     }
