@@ -76,7 +76,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "https://knusdpsl.mooo.com/",   // React 기본 포트
                 "http://localhost:8081",
-                "https://knusdpsl.mooo.com"/// React가 8081에서 실행될 경우
+
 
         ));
         configuration.setAllowCredentials(true); // JWT 인증 허용
