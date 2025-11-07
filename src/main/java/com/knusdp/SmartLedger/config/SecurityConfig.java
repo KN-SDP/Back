@@ -74,8 +74,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")); // 허용할 HTTP 메서드
         configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",   // React 기본 포트
-                "http://localhost:8081"   // React가 8081에서 실행될 경우
+                "https://knusdpsl.mooo.com/",   // React 기본 포트
+                "http://localhost:8081",
+                "https://knusdpsl.mooo.com"/// React가 8081에서 실행될 경우
 
         ));
         configuration.setAllowCredentials(true); // JWT 인증 허용
