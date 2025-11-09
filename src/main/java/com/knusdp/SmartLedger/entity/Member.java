@@ -45,6 +45,10 @@ public class Member {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    //로그인 타입
+    private LoginType loginType;
+    //제공자 아이디(소셜 로그인 플랫폼에서 제공하는 아이디)
+    private String providerId;
 
     @PrePersist
     public void prePersist() {
