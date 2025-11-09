@@ -86,15 +86,24 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        //  테스트용 전체 개방
-        configuration.addAllowedOriginPattern("*");
-        configuration.addAllowedHeader("*");
-        configuration.addAllowedMethod("*");
+        // 1. 접속을 허용할 프론트엔드 주소를 명시적으로 등록합니다.
+        configuration.setAllowedOrigins(List.of(
+                "https://knusdpsl.mooo.com", // 실제 배포된 프론트엔드 도메인
+                "http://localhost:3000",     // 로컬 React 개발용
+                "http://localhost:8081"      // 로컬 React Native Metro 서버
+        ));
+
+        // 2. 허용할 HTTP 메소드를 지정합니다.
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+
+        // 3. 허용할 HTTP 헤더를 지정합니다. ("*"로 모든 헤더 허용)
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // 4. 특정 도메인을 명시했으므로 'true'로 설정하여 JWT 토큰을 주고받을 수 있게 합니다.
         configuration.setAllowCredentials(true);
 
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // 모든 경로에 대해 위 설정 적용
 
         return source;
     }
