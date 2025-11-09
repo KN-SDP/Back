@@ -3,6 +3,8 @@ package com.knusdp.SmartLedger.controller;
 import com.knusdp.SmartLedger.dto.ErrorResponseDto;
 import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.*;
+import com.knusdp.SmartLedger.exception.asset.AssetNotFoundException;
+import com.knusdp.SmartLedger.exception.asset.InvalidDateRangeException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -10,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+
+import java.util.Map;
 
 @Slf4j
 @RestControllerAdvice(basePackages = "com.knusdp.SmartLedger.controller")
@@ -153,4 +157,25 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+    @ExceptionHandler(AssetNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleAssetNotFound(AssetNotFoundException e) {
+        return ResponseEntity.status(404).body(Map.of(
+                "status_code", 404,
+                "error_code", "ASSET_NOT_FOUND",
+                "message", e.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<Map<String, Object>> handleDateRange(InvalidDateRangeException e) {
+        return ResponseEntity.status(400).body(Map.of(
+                "status_code", 400,
+                "error_code", "INVALID_DATE_RANGE",
+                "message", e.getMessage()
+        ));
+    }
+
+
+
+
 }
