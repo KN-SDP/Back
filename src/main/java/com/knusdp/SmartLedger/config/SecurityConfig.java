@@ -86,8 +86,6 @@ public class SecurityConfig {
                 "https://knusdpsl.mooo.com", // 실제 배포된 프론트엔드 도메인
                 "http://localhost:3000",     // 로컬 React 개발용
                 "http://localhost:8081"      // 로컬 React Native Metro 서버
-
-
         ));
 
         // 2. 허용할 HTTP 메소드를 지정합니다.
