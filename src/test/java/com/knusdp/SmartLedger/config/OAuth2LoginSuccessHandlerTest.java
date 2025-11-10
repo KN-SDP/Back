@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -60,7 +61,7 @@ class OAuth2LoginSuccessHandlerTest {
         // given
         // 1. Mock 객체 생성
         HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpServletResponse response = mock(HttpServletResponse.class);
+        MockHttpServletResponse response = new MockHttpServletResponse();
         Authentication authentication = mock(Authentication.class);
 
         // 2. CustomOAuth2UserService가 반환했을 Mock Principal 생성
@@ -75,7 +76,6 @@ class OAuth2LoginSuccessHandlerTest {
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
 
         // 4. Redirect URL을 캡처하기 위한 ArgumentCaptor 생성
-        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
 
         // when
         // 5. 핸들러 실행
@@ -83,9 +83,7 @@ class OAuth2LoginSuccessHandlerTest {
 
         // then
         // 6. response.sendRedirect()가 호출되었는지, 그리고 그 URL이 무엇인지 캡처
-        verify(response).sendRedirect(urlCaptor.capture());
-        String redirectUrl = urlCaptor.getValue();
-
+        String redirectUrl = response.getRedirectedUrl();
         // 7. URL 검증
         assertThat(redirectUrl).startsWith("https://knusdpsl.mooo.com/oauth-redirect");
         assertThat(redirectUrl).contains("?token=");

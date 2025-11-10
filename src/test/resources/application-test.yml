@@ -1,4 +1,20 @@
 spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-secret
+            redirect-uri: "{baseUrl}/login/oauth2/code/google"
+            scope:
+              - email
+              - profile
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
   jackson:
     time-zone: Asia/Seoul
   mvc:
@@ -39,3 +55,6 @@ jwt:
 crypto:
   secret-key: a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4
   init-vector: a1b2c3d4e5f6a1b2
+
+frontend:
+  url: "https://knusdpsl.mooo.com"
