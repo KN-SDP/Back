@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,6 +33,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // 1. 인증 없이 접근을 허용할 URL들을 명시적으로 지정합니다.
                         .requestMatchers(
                                 "/users/login",
@@ -92,7 +94,10 @@ public class SecurityConfig {
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 
         // 3. 허용할 HTTP 헤더를 지정합니다. ("*"로 모든 헤더 허용)
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of(
+                "*"
+        ));
+        configuration.setExposedHeaders(List.of("Authorization"));
 
         // 4. 특정 도메인을 명시했으므로 'true'로 설정하여 JWT 토큰을 주고받을 수 있게 합니다.
         configuration.setAllowCredentials(true);
