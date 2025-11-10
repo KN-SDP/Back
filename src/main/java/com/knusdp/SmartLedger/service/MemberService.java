@@ -1,10 +1,13 @@
 package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
+import com.knusdp.SmartLedger.entity.AccountCategory;
+import com.knusdp.SmartLedger.entity.LoginType;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.exception.EmailDuplicateException;
 import com.knusdp.SmartLedger.exception.NickNameDuplicateException;
 import com.knusdp.SmartLedger.exception.UserNotFoundException;
+import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 
 import com.knusdp.SmartLedger.util.CryptoUtil;
@@ -15,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,6 +28,7 @@ import java.util.UUID;
 @Service
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final CategoryRepository categoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final CryptoUtil cryptoUtil;
 
@@ -120,5 +125,41 @@ public class MemberService {
                 });
 
         member.setNickname(newNickname);
+    }
+    public Member findOrCreateSocialUser(String provider, String providerId, String email, String name) {
+
+        // 1. providerId로 사용자를 먼저 찾습니다.
+        Optional<Member> memberOpt = memberRepository.findByProviderId(providerId);
+        if (memberOpt.isPresent()) {
+            return memberOpt.get(); // 이미 소셜 로그인으로 가입된 회원이면 반환
+        }
+
+        // 2. providerId로는 못찾았지만, 이메일로 가입된 계정이 있는지 확인합니다.
+        Optional<Member> emailMemberOpt = memberRepository.findByEmail(email);
+        if (emailMemberOpt.isPresent()) {
+            // 이미 로컬이나 다른 소셜로 가입된 계정이 있다면,
+            // 해당 계정에 소셜 로그인 정보를 연결(업데이트)합니다.
+            Member existingMember = emailMemberOpt.get();
+            existingMember.setProviderId(providerId);
+            existingMember.setLoginType(LoginType.valueOf(provider.toUpperCase())); // "google" -> LoginType.GOOGLE
+            return memberRepository.save(existingMember); // 업데이트 후 반환
+        }
+
+        // 3. 완전히 새로운 사용자입니다. 새로 가입시킵니다.
+        Member newMember = Member.builder()
+                .email(email)
+                .username(name)
+                // 닉네임은 중복될 수 있으므로 임시값 처리 (예: "Google_12345")
+                .nickname(provider + "_" + providerId.substring(0, 6))
+                .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 임시 비밀번호
+                .birth(LocalDate.of(1900, 1, 1)) // 임시 생년월일
+                .phoneNumber(cryptoUtil.encrypt(providerId)) // 임시 전화번호 (고유해야 함)
+                .loginType(LoginType.valueOf(provider.toUpperCase()))
+                .providerId(providerId)
+                .build();
+
+        Member savedMember = memberRepository.save(newMember);
+
+        return savedMember;
     }
 }

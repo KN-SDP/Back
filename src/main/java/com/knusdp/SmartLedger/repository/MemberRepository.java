@@ -18,4 +18,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     );
     Optional<Member> findByResetToken(String resetToken);
+    Optional<Member> findByProviderId(String providerId);
 }

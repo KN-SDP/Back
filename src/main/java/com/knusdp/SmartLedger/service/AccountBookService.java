@@ -68,7 +68,6 @@ public class AccountBookService {
         accountBookRepository.save(accountBook);
     }
     //통합 조회
-    // 통합 조회
     @Transactional(readOnly = true)
     public List<LedgerResponseDto> findLedgerEntriesByCriteria(Long memberId, LedgerSearchRequestDto dto) {
 
