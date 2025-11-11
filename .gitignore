@@ -49,8 +49,6 @@ target/
 *.log
 
 # Application secrets
-src/main/resources/config/application.yml
-src/main/resources/config/application-prod.yml
 docker-compose.yml
 Dockerfile.dev
 

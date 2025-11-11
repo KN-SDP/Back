@@ -97,6 +97,7 @@ public class SecurityConfig {
         configuration.setAllowedHeaders(List.of(
                 "*"
         ));
+        //백엔드가 응답할 때 프론트엔드가 읽을 수 있는 헤더 지정
         configuration.setExposedHeaders(List.of("Authorization"));
 
         // 4. 특정 도메인을 명시했으므로 'true'로 설정하여 JWT 토큰을 주고받을 수 있게 합니다.
