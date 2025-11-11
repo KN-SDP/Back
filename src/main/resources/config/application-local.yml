@@ -1,0 +1,22 @@
+frontend:
+  url: "https://knusdpsl.mooo.com"
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+
+crypto:
+  secret-key: ${CRYPTO_KEY}
+  init-vector: ${CRYPTO_INIT_VECTOR}
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY}
