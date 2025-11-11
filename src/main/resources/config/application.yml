@@ -1,21 +1,56 @@
 spring:
+  # 1. 'default'나 'group' 대신 'local' 프로필을 항상 활성화하도록 명시합니다.
   profiles:
-    # 기본값으로 local 프로필을 사용하도록 설정합니다.
-    # 아무런 프로필도 지정하지 않으면 이 설정이 사용됩니다.
-    default: local
-    group:
-      # 'local' 프로필을 활성화하면 'common' 프로필도 함께 활성화됩니다.
-      local: common
-      # 'prod' 프로필을 활성화하면 'common' 프로필도 함께 활성화됩니다.
-      prod: common
+    active: integration
 
+  # 2. (common.yml에서 가져옴)
+  jackson:
+    time-zone: Asia/Seoul
+  mvc:
+    problemdetails:
+      enabled: true
+  jpa:
+    # ❗️ 경고: "update"는 배포 환경에서 데이터 유실을 일으킬 수 있습니다.
+    #    나중에 "validate" 또는 "none"으로 변경하는 것을 강력히 권장합니다.
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  application:
+    name: smartLedger
+
+# 3. (기존 application.yml에서 가져옴 - HTTPS 문제 해결)
 server:
   port: 8080
+  # ❗️ Nginx 뒤에서 HTTPS를 올바르게 감지하는 핵심 설정
   forward-headers-strategy: framework
 
+# 4. (common.yml에서 가져옴)
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.type.descriptor.sql.BasicBinder: trace
+    org.springframework.security: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: DEBUG
+    org.springdoc: DEBUG
+    com.knusdp.SmartLedger: DEBUG
+
+# 5. (common.yml에서 가져옴)
 springdoc:
+  api-docs:
+    path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
     enabled: true
-  api-docs:
-    path: /v3/api-docs
+
+# 6. (common.yml에서 가져옴)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
