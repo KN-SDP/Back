@@ -1,5 +1,9 @@
+server:
+  forward-headers-strategy: framework
+
 frontend:
   url: "https://knusdpsl.mooo.com"
+  
 spring:
   datasource:
     url: ${SPRING_DATASOURCE_URL}
