@@ -26,24 +26,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        // 1. 소셜 로그인 플랫폼 정보 가져오기
-        String provider = userRequest.getClientRegistration().getRegistrationId(); // "google"
-
-        // 2. 소셜 로그인 고유 ID 가져오기 (구글은 "sub")
+        String provider = userRequest.getClientRegistration().getRegistrationId();
         String providerId = (String) attributes.get("sub");
-
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
 
-        // 3. MemberService를 통해 소셜 유저를 찾거나 생성
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
 
-        // 4. Spring Security가 인증 시 사용할 Principal(주체) 객체 반환
+        // ★★★ 수정된 부분 ★★★
+        // DB에서 조회한 Member 객체를 속성에 직접 저장
+        Map<String, Object> userAttributes = Map.of(
+                "member", member, // Member 객체 자체를 "member" 키에 저장
+                "id", member.getId() // 기존 "id" 키도 유지
+        );
+
         return new DefaultOAuth2User(
                 Collections.emptyList(),
-                // 'id' 속성에 우리 시스템의 PK(member.getId())를 저장
-                Map.of("id", member.getId(), "email", email, "name", name),
-                "id" // Principal의 .getName() 호출 시 "id" 키의 값을 반환
+                userAttributes, // "id" 대신 모든 정보가 담긴 userAttributes 전달
+                "id"
         );
     }
 }
