@@ -9,24 +9,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
+import org.mockito.Mock;
 
-import java.time.LocalDate;
-import java.util.Collections;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify; // verify import
 
 @SpringBootTest
 @Transactional
@@ -41,6 +25,7 @@ class OAuth2LoginSuccessHandlerTest {
 
     @MockBean
     private JwtUtil jwtUtil; // Mock 처리
+
 
     private Member testMember;
 
@@ -57,6 +42,7 @@ class OAuth2LoginSuccessHandlerTest {
                 .phoneNumber("000") // NOT NULL 필드 채우기
                 .loginType(LoginType.LOCAL) // NOT NULL 필드 채우기
                 .birth(LocalDate.now()) // NOT NULL 필드 채우기
+
                 .build();
         memberRepository.save(testMember);
 
@@ -75,6 +61,7 @@ class OAuth2LoginSuccessHandlerTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
 
+
         // --- 👇 여기가 수정되었습니다. 👇 ---
         // 2. CustomOAuth2UserService가 반환할 속성 맵을 만듭니다.
         //    "id"와 "member" 객체 자체를 포함시킵니다.
@@ -87,10 +74,12 @@ class OAuth2LoginSuccessHandlerTest {
                 Collections.emptyList(),
                 mockAttributes, // "id"와 "member"가 모두 포함된 맵 전달
                 "id"            // Principal의 .getName()이 "id" 키의 값을 반환하도록 설정
+
         );
         // --- 👆 여기까지 수정 👆 ---
 
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
+
 
         // 리디렉션 URL을 캡처하기 위한 ArgumentCaptor
         ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
@@ -106,5 +95,6 @@ class OAuth2LoginSuccessHandlerTest {
         assertThat(redirectUrl).startsWith("http://localhost:3000/oauth-redirect");
         assertThat(redirectUrl).contains("?token=mockToken");
         assertThat(redirectUrl).contains("&isNewUser=false"); // 1900-01-01이 아니므로 false
+
     }
 }
