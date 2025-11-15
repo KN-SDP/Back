@@ -45,9 +45,11 @@ public class Member {
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    //로그인 타입
+
+    @Enumerated(EnumType.STRING) // 1. Enum 이름을 문자열("LOCAL", "GOOGLE")로 저장
+    @Column(nullable = false)    // 2. 이 값은 필수이므로 NOT NULL
     private LoginType loginType;
-    //제공자 아이디(소셜 로그인 플랫폼에서 제공하는 아이디)
+    @Column(unique = true)       // 3. providerId는 고유해야 함 (단, null은 허용)
     private String providerId;
 
     @PrePersist

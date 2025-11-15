@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 @Component
 @RequiredArgsConstructor
@@ -28,23 +29,25 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        // 1. 인증된 Principal(주체) 객체를 가져옴
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
-        // 2. Principal의 'name' 속성(우리가 "id"로 설정한 값)을 가져옴
         Long userId = Long.parseLong(oAuth2User.getName());
 
-        // 3. DB에서 전체 Member 정보를 조회 (토큰에 모든 정보를 담기 위해)
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("OAuth2 로그인 오류: 사용자를 DB에서 찾을 수 없습니다."));
 
-        // 4. JWT 토큰 생성
         String token = jwtUtil.generateToken(member);
 
-        // 5. 토큰을 쿼리 파라미터로 포함하여 프론트엔드로 리디렉션
-        // 예: https://knusdpsl.mooo.com/oauth-redirect?token=eyJh...
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect") // 프론트의 리디렉션 처리 페이지
+        // --- 👇 '신규 유저'인지 확인하는 로직 추가 👇 ---
+        boolean isNewUser = false;
+        // MemberService에서 신규 유저 임시 생년월일을 '1900-01-01'로 설정했는지 확인
+        if (member.getBirth().isEqual(LocalDate.of(1900, 1, 1))) {
+            isNewUser = true;
+        }
+
+        // 5. 토큰 및 신규 유저 여부를 쿼리 파라미터로 포함하여 리디렉션
+        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                 .queryParam("token", token)
+                .queryParam("isNewUser", isNewUser) // "true" 또는 "false" 문자열로 전달됨
                 .build().toUriString();
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
