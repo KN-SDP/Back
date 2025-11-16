@@ -23,6 +23,7 @@ spring:
               - profile
               - openid
 
+
 crypto:
   secret-key: ${CRYPTO_KEY}
   init-vector: ${CRYPTO_INIT_VECTOR}
