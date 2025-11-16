@@ -36,11 +36,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
         String name = (attributes.get("name") != null) ? attributes.get("name").toString() : null;
 
+
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
 
         // 2. attributes 맵에 우리 시스템의 정보 덮어쓰기
         attributes.put("id", member.getId()); // 우리 DB의 PK
-        attributes.put("member", member);   // Member 객체 통째로
+
 
         // 3. Principal의 .getName()이 "id" 키의 값을 반환하도록 명시적으로 고정
         return new DefaultOAuth2User(
