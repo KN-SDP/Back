@@ -17,7 +17,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Map;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -33,36 +33,16 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-            Object rawMember = oAuth2User.getAttributes().get("member");
-            System.out.println("[OAuth2LoginSuccessHandler] rawMember = " + rawMember);
-            if (!(rawMember instanceof Member)) {
-                System.out.println("[OAuth2LoginSuccessHandler] rawMember is not instance of Member");
-                // fallback: DB에서 이메일 또는 id로 조회
-                String email = (String) oAuth2User.getAttributes().get("email");
-                Long id = null;
-                Object idObj = oAuth2User.getAttributes().get("id");
-                if (idObj != null) {
-                    try { id = Long.valueOf(idObj.toString()); } catch (Exception ignored) {}
-                }
-                Member member = null;
-                if (id != null) member = memberRepository.findById(id).orElse(null);
-                if (member == null && email != null) member = memberRepository.findByEmail(email).orElse(null);
 
-                if (member == null) {
-                    // 안전한 대체 행동: 신규회원 리다이렉트 or 에러 페이지
-                    String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
-                            .queryParam("error", "no_member")
-                            .build().toUriString();
-                    getRedirectStrategy().sendRedirect(request, response, target);
-                    return;
-                } else {
-                    rawMember = member;
-                }
-            }
+            // 1. UserService에서 "id"로 지정했던 Principal의 name을 가져옵니다.
+            String userIdStr = oAuth2User.getName();
+            Long userId = Long.valueOf(userIdStr);
 
-            Member member = (Member) rawMember;
+            // 2. ID를 사용해 DB에서 최신 Member 정보를 직접 조회합니다.
+            Member member = memberRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("OAuth2 오류: DB에 해당 ID의 사용자가 없습니다: " + userId));
 
-            // 안전 방어: birth가 null이면 신규 유저로 간주
+            // 안전 방어: birth가 null이면 신규 유저로 간주 (기존 로직 동일)
             boolean isNewUser = member.getBirth() == null || member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
 
             // JWT 생성 — 예외 잡기
@@ -94,6 +74,4 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             getRedirectStrategy().sendRedirect(request, response, target);
         }
     }
-
-
 }

@@ -39,7 +39,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         // 2. attributes 맵에 우리 시스템의 정보 덮어쓰기
         attributes.put("id", member.getId()); // 우리 DB의 PK
-        attributes.put("member", member);   // Member 객체 통째로
 
         // 3. Principal의 .getName()이 "id" 키의 값을 반환하도록 명시적으로 고정
         return new DefaultOAuth2User(
