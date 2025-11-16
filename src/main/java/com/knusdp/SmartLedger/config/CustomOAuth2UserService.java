@@ -32,20 +32,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
-
         String providerId = (attributes.get("sub") != null) ? attributes.get("sub").toString() : null;
         String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
         String name = (attributes.get("name") != null) ? attributes.get("name").toString() : null;
 
-
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
-        System.out.println("member = " + member);
-        System.out.println("member id = " + member.getId());
-        System.out.println("member email = " + member.getEmail());
-        attributes.put("member", member);
-        // ensure there's an id key as string
-        attributes.put("id", member != null && member.getId() != null ? member.getId() : null);
-        System.out.println("OAuth2User attributes: " + attributes);
 
         // 2. attributes 맵에 우리 시스템의 정보 덮어쓰기
         attributes.put("id", member.getId()); // 우리 DB의 PK
