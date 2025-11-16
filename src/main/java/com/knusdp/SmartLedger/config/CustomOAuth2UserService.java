@@ -3,7 +3,6 @@ package com.knusdp.SmartLedger.config;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.service.MemberService;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.core.GrantedAuthority;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -18,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.lang.invoke.CallSite;
 import java.util.Collections;
 import java.util.HashMap;
-
 import java.util.List;
 
 import java.util.Map;

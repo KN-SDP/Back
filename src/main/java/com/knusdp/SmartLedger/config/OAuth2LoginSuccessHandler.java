@@ -64,7 +64,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                     .queryParam("isNewUser", isNewUser)
                     .build().toUriString();
 
-
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception ex) {
             logger.error("OAuth2 onAuthenticationSuccess 처리 중 오류", ex);
