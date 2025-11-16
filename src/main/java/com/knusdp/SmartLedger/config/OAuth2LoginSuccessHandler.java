@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -15,7 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -27,26 +30,50 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private String frontendUrl;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        // 1. 인증된 Principal(주체) 객체를 가져옴
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException{
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // 2. Principal의 'name' 속성(우리가 "id"로 설정한 값)을 가져옴
-        Long userId = Long.parseLong(oAuth2User.getName());
+            // 1. UserService에서 "id"로 지정했던 Principal의 name을 가져옵니다.
+            String userIdStr = oAuth2User.getName();
+            Long userId = Long.valueOf(userIdStr);
 
-        // 3. DB에서 전체 Member 정보를 조회 (토큰에 모든 정보를 담기 위해)
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("OAuth2 로그인 오류: 사용자를 DB에서 찾을 수 없습니다."));
+            // 2. ID를 사용해 DB에서 최신 Member 정보를 직접 조회합니다.
+            Member member = memberRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("OAuth2 오류: DB에 해당 ID의 사용자가 없습니다: " + userId));
 
-        // 4. JWT 토큰 생성
-        String token = jwtUtil.generateToken(member);
+            // 안전 방어: birth가 null이면 신규 유저로 간주 (기존 로직 동일)
+            boolean isNewUser = member.getBirth() == null || member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
 
-        // 5. 토큰을 쿼리 파라미터로 포함하여 프론트엔드로 리디렉션
-        // 예: https://knusdpsl.mooo.com/oauth-redirect?token=eyJh...
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect") // 프론트의 리디렉션 처리 페이지
-                .queryParam("token", token)
-                .build().toUriString();
+            // JWT 생성 — 예외 잡기
+            String token;
+            try {
+                token = jwtUtil.generateToken(member);
+            } catch (Exception e) {
+                // token 생성 실패 시 로그 찍고 에러 리다이렉트
+                logger.error("JWT 생성 실패", e);
+                String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                        .queryParam("error", "token_generation_failed")
+                        .build().toUriString();
+                getRedirectStrategy().sendRedirect(request, response, target);
+                return;
+            }
 
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                    .queryParam("token", token)
+                    .queryParam("isNewUser", isNewUser)
+                    .build().toUriString();
+
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        } catch (Exception ex) {
+            logger.error("OAuth2 onAuthenticationSuccess 처리 중 오류", ex);
+            // 에러 시 프론트로 에러코드 전달
+            String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                    .queryParam("error", "server_error")
+                    .build().toUriString();
+            getRedirectStrategy().sendRedirect(request, response, target);
+        }
     }
+
+
 }

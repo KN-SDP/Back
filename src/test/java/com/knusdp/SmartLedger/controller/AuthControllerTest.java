@@ -2,6 +2,7 @@ package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.LoginResponseDto;
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
+import com.knusdp.SmartLedger.entity.LoginType;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.exception.LoginFailedException;
 import com.knusdp.SmartLedger.exception.UserNotFoundException;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @Transactional
+@ActiveProfiles("test")
 class AuthControllerTest {
 
     @Autowired private MemberRepository memberRepository;
@@ -61,6 +63,7 @@ class AuthControllerTest {
                 .email("1111@gmail.com")
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("encrypted_01012345678")
+                .loginType(LoginType.LOCAL) // ★ 필수 추가
                 .birth(LocalDate.parse("2000-01-01"))
                 .nickname("테스트닉네임")
                 .build();
@@ -87,6 +90,7 @@ class AuthControllerTest {
                 .email("1111@gmail.com")
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("encrypted_01012345678")
+                .loginType(LoginType.LOCAL) // ★ 필수 추가
                 .birth(LocalDate.parse("2000-01-01"))
                 .nickname("테스트닉네임1")
                 .build();
@@ -98,16 +102,17 @@ class AuthControllerTest {
     @Test
     @DisplayName("회원가입 성공 및 전화번호 암호화 검증")
     void signUp_success() {
-        SaveUserLoginInfoDto dto = new SaveUserLoginInfoDto("test@test.com", "abcdef", "abcdef", "jiwoo", "tester", "1999-01-01", "01099998888");
+        SaveUserLoginInfoDto dto = new SaveUserLoginInfoDto(
+                "test@test.com", "abcdef", "abcdef", "jiwoo", "tester", "1999-01-01", "01099998888"
+        );
 
-        // when
         // 반환 타입을 Member로 수정
         Member savedMember = memberService.saveUserInfo(dto);
 
-        // then
         assertThat(savedMember.getId()).isNotNull();
         assertThat(savedMember.getEmail()).isEqualTo("test@test.com");
         assertThat(passwordEncoder.matches("abcdef", savedMember.getPassword())).isTrue();
+        assertThat(savedMember.getLoginType()).isNotNull(); // loginType 검증 추가
     }
 
     @Test
@@ -118,6 +123,7 @@ class AuthControllerTest {
                 .email("recover@test.com")
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("encrypted_01011112222")
+                .loginType(LoginType.LOCAL) // ★ 필수 추가
                 .birth(LocalDate.parse("1995-01-01"))
                 .nickname("recoverTest")
                 .build();
@@ -131,6 +137,7 @@ class AuthControllerTest {
     @Test
     @DisplayName("계정 복구 - 사용자 없을 시 예외 발생")
     void recoverId_userNotFound() {
-        assertThrows(UserNotFoundException.class, () -> findInFoService.findId("nonexistent", "01000000000", "2000-01-01"));
+        assertThrows(UserNotFoundException.class,
+                () -> findInFoService.findId("nonexistent", "01000000000", "2000-01-01"));
     }
 }

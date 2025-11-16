@@ -121,5 +121,18 @@ public class AuthController {
         return ResponseEntity.ok(memberService.isEmailAvailable(request.email()));
     }
 
+    // 추가정보입력
+    @PutMapping("/profile")
+    @SecurityRequirement(name = "bearerAuth") // Swagger UI용
+    public ResponseEntity<String> updateProfile(@Valid @RequestBody UpdateProfileRequestDto dto) {
+        // 1. JWT 토큰에서 사용자 ID 추출
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = Long.parseLong(authentication.getName());
 
+        // 2. 서비스 호출
+        memberService.updateProfile(userId, dto);
+
+        // 3. 성공 응답
+        return ResponseEntity.ok("프로필 정보가 성공적으로 업데이트되었습니다.");
+    }
 }

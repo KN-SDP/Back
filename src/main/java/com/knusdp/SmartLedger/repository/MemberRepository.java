@@ -22,4 +22,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     //이메일중복 확인
     boolean existsByEmail(String email);
+    Optional<Member> findByPhoneNumber(String encryptedPhoneNumber);
+
 }

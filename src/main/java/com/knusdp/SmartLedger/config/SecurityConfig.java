@@ -52,7 +52,11 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/login", // <-- /login 경로 추가
+                                "/login?error",
+                                "/oauth-redirect",
+                                "/oauth-redirect/**"
 
                         ).permitAll()
                         // 2. 위에서 허용한 URL을 제외한 나머지 모든 요청은 인증이 필요합니다.
@@ -88,7 +92,9 @@ public class SecurityConfig {
         configuration.setAllowedOriginPatterns(List.of(
                 "https://knusdpsl.mooo.com", // 실제 배포된 프론트엔드 도메인
                 "http://localhost:3000",     // 로컬 React 개발용
-                "http://localhost:8081"      // 로컬 React Native Metro 서버
+                "http://localhost:8081",      // 로컬 React Native Metro 서버
+                "https://web-front-mhvqlrzi1b9d488f.sel3.cloudtype.app",
+                "https://d76cce2e.front-4ob.pages.dev"
         ));
 
         // 2. 허용할 HTTP 메소드를 지정합니다.

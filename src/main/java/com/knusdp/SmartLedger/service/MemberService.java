@@ -1,6 +1,7 @@
 package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
+import com.knusdp.SmartLedger.dto.UpdateProfileRequestDto;
 import com.knusdp.SmartLedger.entity.AccountCategory;
 import com.knusdp.SmartLedger.entity.LoginType;
 import com.knusdp.SmartLedger.entity.Member;
@@ -54,6 +55,7 @@ public class MemberService {
                 .email(dto.getUserEmail())
                 .phoneNumber(encryptedPhoneNumber)
                 .birth(LocalDate.parse(dto.getUserBirth()))
+                .loginType(LoginType.LOCAL)
                 .nickname(dto.getUserNickname())
                 .build();
 
@@ -129,39 +131,67 @@ public class MemberService {
     }
     public Member findOrCreateSocialUser(String provider, String providerId, String email, String name) {
 
-        // 1. providerId로 사용자를 먼저 찾습니다.
         Optional<Member> memberOpt = memberRepository.findByProviderId(providerId);
         if (memberOpt.isPresent()) {
-            return memberOpt.get(); // 이미 소셜 로그인으로 가입된 회원이면 반환
+            return memberOpt.get(); // 이미 가입된 소셜 회원이면 반환
         }
 
-        // 2. providerId로는 못찾았지만, 이메일로 가입된 계정이 있는지 확인합니다.
         Optional<Member> emailMemberOpt = memberRepository.findByEmail(email);
         if (emailMemberOpt.isPresent()) {
-            // 이미 로컬이나 다른 소셜로 가입된 계정이 있다면,
-            // 해당 계정에 소셜 로그인 정보를 연결(업데이트)합니다.
             Member existingMember = emailMemberOpt.get();
             existingMember.setProviderId(providerId);
-            existingMember.setLoginType(LoginType.valueOf(provider.toUpperCase())); // "google" -> LoginType.GOOGLE
-            return memberRepository.save(existingMember); // 업데이트 후 반환
+            existingMember.setLoginType(LoginType.valueOf(provider.toUpperCase()));
+            return memberRepository.save(existingMember);
         }
 
-        // 3. 완전히 새로운 사용자입니다. 새로 가입시킵니다.
+        // --- 신규 회원 생성 로직 ---
         Member newMember = Member.builder()
                 .email(email)
                 .username(name)
-                // 닉네임은 중복될 수 있으므로 임시값 처리 (예: "Google_12345")
-                .nickname(provider + "_" + providerId.substring(0, 6))
-                .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 임시 비밀번호
-                .birth(LocalDate.of(1900, 1, 1)) // 임시 생년월일
-                .phoneNumber(cryptoUtil.encrypt(providerId)) // 임시 전화번호 (고유해야 함)
                 .loginType(LoginType.valueOf(provider.toUpperCase()))
                 .providerId(providerId)
+
+                // --- DB 필수값을 채우기 위한 임시 정보 (Dummy Data) ---
+                .nickname(provider + "_" + providerId.substring(0, 6)) // UNIQUE 임시 닉네임
+                .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 임시 비밀번호
+
+                .birth(LocalDate.of(1900, 1, 1)) // ★★★ "신규 유저" 꼬리표가 될 임시 생년월일
+
+                // phoneNumber는 UNIQUE이므로, 고유값인 providerId를 암호화하여 임시 저장
+                .phoneNumber(cryptoUtil.encrypt(providerId))
+
                 .build();
 
-        Member savedMember = memberRepository.save(newMember);
+        return memberRepository.save(newMember);
+        // (참고: 기본 카테고리 생성 로직은 DB에 수동 추가하셨으므로 여기서 호출하지 않습니다.)
+    }
+    public void updateProfile(Long userId, UpdateProfileRequestDto dto) {
+        // 1. 닉네임 중복 검사 (본인 제외)
+        memberRepository.findByNickname(dto.getNickname())
+                .ifPresent(member -> {
+                    if (!member.getId().equals(userId)) {
+                        throw new NickNameDuplicateException("이미 사용 중인 닉네임입니다.");
+                    }
+                });
 
-        return savedMember;
+        // 2. 전화번호 중복 검사 (본인 제외)
+        String encryptedPhone = cryptoUtil.encrypt(dto.getPhoneNumber());
+        memberRepository.findByPhoneNumber(encryptedPhone)
+                .ifPresent(member -> {
+                    if (!member.getId().equals(userId)) {
+                        throw new RuntimeException("이미 등록된 전화번호입니다."); // (PhoneNumberDuplicateException)
+                    }
+                });
+
+        // 3. 사용자 정보 조회 및 업데이트
+        Member memberToUpdate = memberRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
+
+        memberToUpdate.setNickname(dto.getNickname());
+        memberToUpdate.setBirth(dto.getBirth());
+        memberToUpdate.setPhoneNumber(encryptedPhone);
+
+        // @Transactional에 의해 자동 저장 (Dirty Checking)
     }
 
 
