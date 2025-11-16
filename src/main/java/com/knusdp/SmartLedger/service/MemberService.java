@@ -16,6 +16,7 @@ import com.knusdp.SmartLedger.util.CryptoUtil;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -191,5 +192,10 @@ public class MemberService {
         memberToUpdate.setPhoneNumber(encryptedPhone);
 
         // @Transactional에 의해 자동 저장 (Dirty Checking)
+    }
+
+
+    public boolean isEmailAvailable(String email) {
+        return !memberRepository.existsByEmail(email);
     }
 }

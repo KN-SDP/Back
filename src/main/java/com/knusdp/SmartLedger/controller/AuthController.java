@@ -113,8 +113,14 @@ public class AuthController {
         memberService.updateNickname(userId, request.getChange_nickname());
 
         return ResponseEntity.ok("닉네임 변경이 완료되었습니다.");
-
     }
+
+    //이메일 중복 확인
+    @PostMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmail(@RequestBody EmailCheckRequest request) {
+        return ResponseEntity.ok(memberService.isEmailAvailable(request.email()));
+    }
+
     // 추가정보입력
     @PutMapping("/profile")
     @SecurityRequirement(name = "bearerAuth") // Swagger UI용
