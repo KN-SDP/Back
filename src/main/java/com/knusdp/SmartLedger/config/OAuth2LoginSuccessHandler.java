@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -17,7 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Map;
-
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -30,28 +31,67 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        try {
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            Object rawMember = oAuth2User.getAttributes().get("member");
 
-        // 1. DB 조회를 제거하고, Principal의 속성에서 Member 객체를 직접 가져옴
-        Member member = (Member) oAuth2User.getAttributes().get("member");
+            if (!(rawMember instanceof Member)) {
+                // fallback: DB에서 이메일 또는 id로 조회
+                String email = (String) oAuth2User.getAttributes().get("email");
+                Long id = null;
+                Object idObj = oAuth2User.getAttributes().get("id");
+                if (idObj != null) {
+                    try { id = Long.valueOf(idObj.toString()); } catch (Exception ignored) {}
+                }
+                Member member = null;
+                if (id != null) member = memberRepository.findById(id).orElse(null);
+                if (member == null && email != null) member = memberRepository.findByEmail(email).orElse(null);
 
-        if (member == null) {
-            // "member" 속성이 없는 비상 상황 처리
-            throw new RuntimeException("OAuth2 로그인 오류: 사용자 정보를 속성에서 찾을 수 없습니다.");
+                if (member == null) {
+                    // 안전한 대체 행동: 신규회원 리다이렉트 or 에러 페이지
+                    String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                            .queryParam("error", "no_member")
+                            .build().toUriString();
+                    getRedirectStrategy().sendRedirect(request, response, target);
+                    return;
+                } else {
+                    rawMember = member;
+                }
+            }
+
+            Member member = (Member) rawMember;
+
+            // 안전 방어: birth가 null이면 신규 유저로 간주
+            boolean isNewUser = member.getBirth() == null || member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
+
+            // JWT 생성 — 예외 잡기
+            String token;
+            try {
+                token = jwtUtil.generateToken(member);
+            } catch (Exception e) {
+                // token 생성 실패 시 로그 찍고 에러 리다이렉트
+                logger.error("JWT 생성 실패", e);
+                String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                        .queryParam("error", "token_generation_failed")
+                        .build().toUriString();
+                getRedirectStrategy().sendRedirect(request, response, target);
+                return;
+            }
+
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                    .queryParam("token", token)
+                    .queryParam("isNewUser", isNewUser)
+                    .build().toUriString();
+
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        } catch (Exception ex) {
+            logger.error("OAuth2 onAuthenticationSuccess 처리 중 오류", ex);
+            // 에러 시 프론트로 에러코드 전달
+            String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                    .queryParam("error", "server_error")
+                    .build().toUriString();
+            getRedirectStrategy().sendRedirect(request, response, target);
         }
-
-        // 2. JWT 토큰 생성
-        String token = jwtUtil.generateToken(member);
-
-        // 3. 신규 유저인지 확인
-        boolean isNewUser = member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
-
-        // 4. 프론트엔드로 리디렉션
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
-                .queryParam("token", token)
-                .queryParam("isNewUser", isNewUser)
-                .build().toUriString();
-
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
+
 }
