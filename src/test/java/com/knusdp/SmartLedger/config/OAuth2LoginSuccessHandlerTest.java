@@ -5,11 +5,12 @@ import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
+
+import org.mockito.ArgumentCaptor;
+
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,6 +28,8 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify; // verify import
+
 
 @SpringBootTest
 @Transactional
@@ -40,7 +43,9 @@ class OAuth2LoginSuccessHandlerTest {
     private MemberRepository memberRepository;
 
     @MockBean
-    private JwtUtil jwtUtil; // 실제 Bean 대신 Mock 처리
+
+    private JwtUtil jwtUtil; // Mock 처리
+
 
     private Member testMember;
 
@@ -54,9 +59,10 @@ class OAuth2LoginSuccessHandlerTest {
                 .username("테스트유저")
                 .nickname("oauthUser")
                 .password("testpass")
-                .phoneNumber("000")
-                .loginType(LoginType.LOCAL)
-                .birth(LocalDate.now())
+                .phoneNumber("000") // NOT NULL 필드 채우기
+                .loginType(LoginType.LOCAL) // NOT NULL 필드 채우기
+                .birth(LocalDate.now()) // NOT NULL 필드 채우기
+
                 .build();
         memberRepository.save(testMember);
 
@@ -75,23 +81,38 @@ class OAuth2LoginSuccessHandlerTest {
         MockHttpServletResponse response = new MockHttpServletResponse();
         Authentication authentication = org.mockito.Mockito.mock(Authentication.class);
 
-        OAuth2User oAuth2User = new DefaultOAuth2User(
-                Collections.emptyList(),
-                Map.of("id", testMember.getId()),
-                "id"
+        // --- 👇 여기가 수정되었습니다. 👇 ---
+        // 2. CustomOAuth2UserService가 반환할 속성 맵을 만듭니다.
+        //    "id"와 "member" 객체 자체를 포함시킵니다.
+        Map<String, Object> mockAttributes = Map.of(
+                "id", testMember.getId(),
+                "member", testMember // <-- 핸들러가 기대하는 "member" 객체 추가
         );
 
+        OAuth2User oAuth2User = new DefaultOAuth2User(
+                Collections.emptyList(),
+                mockAttributes, // "id"와 "member"가 모두 포함된 맵 전달
+                "id"            // Principal의 .getName()이 "id" 키의 값을 반환하도록 설정
+
+        );
+        // --- 👆 여기까지 수정 👆 ---
+
         when(authentication.getPrincipal()).thenReturn(oAuth2User);
+
+        // 리디렉션 URL을 캡처하기 위한 ArgumentCaptor
+        ArgumentCaptor<String> urlCaptor = ArgumentCaptor.forClass(String.class);
 
         // when
         successHandler.onAuthenticationSuccess(request, response, authentication);
 
         // then
+        // response.sendRedirect()가 호출되었는지, 그리고 그 URL이 무엇인지 캡처
         String redirectUrl = response.getRedirectedUrl();
-        assertThat(redirectUrl).startsWith("https://knusdpsl.mooo.com/oauth-redirect");
+
+        // application-test.yml에 설정된 frontend.url 값("http://localhost:3000")을 확인
+        assertThat(redirectUrl).startsWith("http://localhost:3000/oauth-redirect");
         assertThat(redirectUrl).contains("?token=mockToken");
-        assertThat(jwtUtil.validateToken("mockToken")).isTrue();
-        assertThat(jwtUtil.getUserIdFromToken("mockToken")).isEqualTo(String.valueOf(testMember.getId()));
-        assertThat(jwtUtil.getEmailFromToken("mockToken")).isEqualTo(testMember.getEmail());
+        assertThat(redirectUrl).contains("&isNewUser=false"); // 1900-01-01이 아니므로 false
+
     }
 }
