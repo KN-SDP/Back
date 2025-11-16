@@ -29,18 +29,24 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
 
-        // Google OAuth Redirect 경로는 필터 제외
+        // Google OAuth Redirect
         if (path.equals("/oauth-redirect")) {
             return true;
         }
 
-        // OAuth 로그인 관련 경로 필터 제외
+        // OAuth2 로그인 과정 전체 제외
         if (path.startsWith("/login/oauth2") || path.startsWith("/oauth2")) {
             return true;
         }
 
-        return false; // 그 외는 필터 적용
+        // Spring Security 내부 /login 요청도 제외해야 오류가 안 남
+        if (path.equals("/login")) {
+            return true;
+        }
+
+        return false;
     }
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
