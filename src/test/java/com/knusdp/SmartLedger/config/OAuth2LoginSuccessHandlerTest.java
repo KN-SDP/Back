@@ -43,7 +43,6 @@ class OAuth2LoginSuccessHandlerTest {
     @MockBean
     private JwtUtil jwtUtil; // Mock 처리
 
-
     private Member testMember;
 
     @BeforeEach

@@ -3,6 +3,7 @@ package com.knusdp.SmartLedger.config;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.service.MemberService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -27,22 +28,32 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
+
+        // 1) 원본 attributes 보존
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
+        // 2) 안전하게 값 꺼내기
+        String providerId = (attributes.get("sub") != null) ? attributes.get("sub").toString() : null;
+        String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
+        String name = (attributes.get("name") != null) ? attributes.get("name").toString() : null;
 
-        String providerId = (String) attributes.get("sub");
-        String email = (String) attributes.get("email");
-        String name = (String) attributes.get("name");
 
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
-
-        // 기존 attribute 유지 + member 추가
+        System.out.println("member = " + member);
+        System.out.println("member id = " + member.getId());
+        System.out.println("member email = " + member.getEmail());
         attributes.put("member", member);
+        // ensure there's an id key as string
+        attributes.put("id", member != null && member.getId() != null ? member.getId() : null);
 
         return new DefaultOAuth2User(
-                oAuth2User.getAuthorities(),
+                // keep authorities from original user if present, otherwise grant a default
+                oAuth2User.getAuthorities() == null || oAuth2User.getAuthorities().isEmpty()
+                        ? Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"))
+                        : oAuth2User.getAuthorities(),
                 attributes,
-                "sub"
+                // nameAttributeKey: use a key that exists; prefer "sub" for Google
+                attributes.containsKey("sub") ? "sub" : (attributes.containsKey("id") ? "id" : "email")
 
         );
     }
