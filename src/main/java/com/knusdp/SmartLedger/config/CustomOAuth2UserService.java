@@ -32,6 +32,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // 1) 원본 attributes 보존
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
+
         // 2) 안전하게 값 꺼내기
         String providerId = (attributes.get("sub") != null) ? attributes.get("sub").toString() : null;
         String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
@@ -45,6 +46,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         attributes.put("member", member);
         // ensure there's an id key as string
         attributes.put("id", member != null && member.getId() != null ? member.getId() : null);
+        System.out.println("OAuth2User attributes: " + attributes);
+
 
         return new DefaultOAuth2User(
                 // keep authorities from original user if present, otherwise grant a default
@@ -56,5 +59,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 attributes.containsKey("sub") ? "sub" : (attributes.containsKey("id") ? "id" : "email")
 
         );
+
     }
 }

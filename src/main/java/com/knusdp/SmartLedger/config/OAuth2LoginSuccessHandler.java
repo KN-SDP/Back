@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Map;
 @Slf4j
-
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -36,7 +35,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
             Object rawMember = oAuth2User.getAttributes().get("member");
 
+            System.out.println("[OAuth2LoginSuccessHandler] rawMember = " + rawMember);
             if (!(rawMember instanceof Member)) {
+                System.out.println("[OAuth2LoginSuccessHandler] rawMember is not instance of Member");
                 // fallback: DB에서 이메일 또는 id로 조회
                 String email = (String) oAuth2User.getAttributes().get("email");
                 Long id = null;
@@ -79,7 +80,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 return;
             }
 
-
             String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                     .queryParam("token", token)
                     .queryParam("isNewUser", isNewUser)
@@ -95,5 +95,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             getRedirectStrategy().sendRedirect(request, response, target);
         }
     }
+
 
 }
