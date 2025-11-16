@@ -61,11 +61,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService) // 사용자 정보 처리
-                        )
-                        .successHandler(oAuth2LoginSuccessHandler) // 로그인 성공 후 JWT 발급/리디렉션 처리
-                )
+                        .successHandler())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
