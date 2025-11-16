@@ -34,6 +34,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
             Object rawMember = oAuth2User.getAttributes().get("member");
+
             System.out.println("[OAuth2LoginSuccessHandler] rawMember = " + rawMember);
             if (!(rawMember instanceof Member)) {
                 System.out.println("[OAuth2LoginSuccessHandler] rawMember is not instance of Member");
