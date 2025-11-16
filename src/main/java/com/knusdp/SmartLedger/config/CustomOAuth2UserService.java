@@ -43,6 +43,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         attributes.put("member", member);
         // ensure there's an id key as string
         attributes.put("id", member != null && member.getId() != null ? member.getId() : null);
+        System.out.println("OAuth2User attributes: " + attributes);
 
         return new DefaultOAuth2User(
                 // keep authorities from original user if present, otherwise grant a default
@@ -52,6 +53,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 attributes,
                 // nameAttributeKey: use a key that exists; prefer "sub" for Google
                 attributes.containsKey("sub") ? "sub" : (attributes.containsKey("id") ? "id" : "email")
+
         );
+
     }
 }
