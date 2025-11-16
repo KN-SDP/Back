@@ -74,4 +74,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             getRedirectStrategy().sendRedirect(request, response, target);
         }
     }
+
+
 }
