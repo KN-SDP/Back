@@ -53,7 +53,9 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**",
                                 "/login", // <-- /login 경로 추가
-                                "/login?error"
+                                "/login?error",
+                                "/oauth-redirect"
+
 
                         ).permitAll()
                         // 2. 위에서 허용한 URL을 제외한 나머지 모든 요청은 인증이 필요합니다.
