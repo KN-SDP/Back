@@ -15,6 +15,7 @@ import com.knusdp.SmartLedger.util.CryptoUtil;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -161,5 +162,10 @@ public class MemberService {
         Member savedMember = memberRepository.save(newMember);
 
         return savedMember;
+    }
+
+
+    public boolean isEmailAvailable(String email) {
+        return !memberRepository.existsByEmail(email);
     }
 }

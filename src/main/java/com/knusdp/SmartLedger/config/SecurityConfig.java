@@ -38,6 +38,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/users/login",
                                 "/users/sign-up",
+                                "/users/check-email",
                                 "/swagger-ui/*",
                                 "/swagger-ui.html",
                                 "/users/recover-id",

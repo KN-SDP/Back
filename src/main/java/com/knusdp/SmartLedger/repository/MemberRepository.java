@@ -19,4 +19,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     );
     Optional<Member> findByResetToken(String resetToken);
     Optional<Member> findByProviderId(String providerId);
+
+    //이메일중복 확인
+    boolean existsByEmail(String email);
 }
