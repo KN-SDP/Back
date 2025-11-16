@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Map;
 @Slf4j
+
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -77,6 +78,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 getRedirectStrategy().sendRedirect(request, response, target);
                 return;
             }
+
 
             String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                     .queryParam("token", token)

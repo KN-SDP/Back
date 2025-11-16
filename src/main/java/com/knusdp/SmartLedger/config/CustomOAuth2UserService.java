@@ -28,6 +28,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
+
         // 1) 원본 attributes 보존
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
@@ -35,6 +36,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String providerId = (attributes.get("sub") != null) ? attributes.get("sub").toString() : null;
         String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
         String name = (attributes.get("name") != null) ? attributes.get("name").toString() : null;
+
 
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
         System.out.println("member = " + member);
@@ -52,6 +54,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 attributes,
                 // nameAttributeKey: use a key that exists; prefer "sub" for Google
                 attributes.containsKey("sub") ? "sub" : (attributes.containsKey("id") ? "id" : "email")
+
         );
     }
 }
