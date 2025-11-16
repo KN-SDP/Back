@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -24,26 +25,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        Map<String, Object> attributes = oAuth2User.getAttributes();
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
+        Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
+
         String providerId = (String) attributes.get("sub");
         String email = (String) attributes.get("email");
         String name = (String) attributes.get("name");
 
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
 
-        // ★★★ 수정된 부분 ★★★
-        // DB에서 조회한 Member 객체를 속성에 직접 저장
-        Map<String, Object> userAttributes = Map.of(
-                "member", member, // Member 객체 자체를 "member" 키에 저장
-                "id", member.getId() // 기존 "id" 키도 유지
-        );
+        // 기존 attribute 유지 + member 추가
+        attributes.put("member", member);
 
         return new DefaultOAuth2User(
-                Collections.emptyList(),
-                userAttributes, // "id" 대신 모든 정보가 담긴 userAttributes 전달
-                "id"
+                oAuth2User.getAuthorities(),
+                attributes,
+                "sub"
         );
     }
 }
