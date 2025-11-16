@@ -30,10 +30,9 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private String frontendUrl;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException{
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
-
 
             // 1. UserService에서 "id"로 지정했던 Principal의 name을 가져옵니다.
             String userIdStr = oAuth2User.getName();
