@@ -28,13 +28,16 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
+
         // 1) 원본 attributes 보존
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
+
 
         // 2) 안전하게 값 꺼내기
         String providerId = (attributes.get("sub") != null) ? attributes.get("sub").toString() : null;
         String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
         String name = (attributes.get("name") != null) ? attributes.get("name").toString() : null;
+
 
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
         System.out.println("member = " + member);
@@ -44,6 +47,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         // ensure there's an id key as string
         attributes.put("id", member != null && member.getId() != null ? member.getId() : null);
         System.out.println("OAuth2User attributes: " + attributes);
+
 
         return new DefaultOAuth2User(
                 // keep authorities from original user if present, otherwise grant a default
