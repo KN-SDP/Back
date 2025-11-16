@@ -27,6 +27,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
+
         // 1. 원본 attributes 보존 및 수정을 위해 HashMap으로 복사
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
@@ -35,16 +36,20 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
         String name = (attributes.get("name") != null) ? attributes.get("name").toString() : null;
 
+
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
 
         // 2. attributes 맵에 우리 시스템의 정보 덮어쓰기
         attributes.put("id", member.getId()); // 우리 DB의 PK
+
 
         // 3. Principal의 .getName()이 "id" 키의 값을 반환하도록 명시적으로 고정
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), // 기본 권한 부여
                 attributes,
                 "id" // <-- "sub"가 아닌 "id"로 고정!
+
         );
+
     }
 }

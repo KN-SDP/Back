@@ -34,6 +34,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         try {
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
+
             // 1. UserService에서 "id"로 지정했던 Principal의 name을 가져옵니다.
             String userIdStr = oAuth2User.getName();
             Long userId = Long.valueOf(userIdStr);
@@ -64,6 +65,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                     .queryParam("isNewUser", isNewUser)
                     .build().toUriString();
 
+
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception ex) {
             logger.error("OAuth2 onAuthenticationSuccess 처리 중 오류", ex);
@@ -74,4 +76,6 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             getRedirectStrategy().sendRedirect(request, response, target);
         }
     }
+
+
 }
