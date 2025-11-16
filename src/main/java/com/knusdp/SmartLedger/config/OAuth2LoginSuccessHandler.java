@@ -31,6 +31,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+        // attributes를 먼저 꺼냄
+        Map<String, Object> attrs = oAuth2User.getAttributes();
 
         // 1. DB 조회를 제거하고, Principal의 속성에서 Member 객체를 직접 가져옴
         Member member = (Member) oAuth2User.getAttributes().get("member");
@@ -47,6 +49,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         boolean isNewUser = member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
 
         // 4. 프론트엔드로 리디렉션
+
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                 .queryParam("token", token)
                 .queryParam("isNewUser", isNewUser)
@@ -54,4 +57,5 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
+
 }
