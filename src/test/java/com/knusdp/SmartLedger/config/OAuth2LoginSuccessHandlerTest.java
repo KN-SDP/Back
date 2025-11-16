@@ -10,7 +10,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import org.mockito.ArgumentCaptor;
-
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +29,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.verify; // verify import
 
-
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
@@ -43,7 +41,6 @@ class OAuth2LoginSuccessHandlerTest {
     private MemberRepository memberRepository;
 
     @MockBean
-
     private JwtUtil jwtUtil; // Mock 처리
 
 
@@ -62,7 +59,6 @@ class OAuth2LoginSuccessHandlerTest {
                 .phoneNumber("000") // NOT NULL 필드 채우기
                 .loginType(LoginType.LOCAL) // NOT NULL 필드 채우기
                 .birth(LocalDate.now()) // NOT NULL 필드 채우기
-
                 .build();
         memberRepository.save(testMember);
 
@@ -93,7 +89,6 @@ class OAuth2LoginSuccessHandlerTest {
                 Collections.emptyList(),
                 mockAttributes, // "id"와 "member"가 모두 포함된 맵 전달
                 "id"            // Principal의 .getName()이 "id" 키의 값을 반환하도록 설정
-
         );
         // --- 👆 여기까지 수정 👆 ---
 
@@ -113,6 +108,5 @@ class OAuth2LoginSuccessHandlerTest {
         assertThat(redirectUrl).startsWith("http://localhost:3000/oauth-redirect");
         assertThat(redirectUrl).contains("?token=mockToken");
         assertThat(redirectUrl).contains("&isNewUser=false"); // 1900-01-01이 아니므로 false
-
     }
 }
