@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+
 import org.mockito.ArgumentCaptor;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,7 @@ class OAuth2LoginSuccessHandlerTest {
 
     @MockBean
     private JwtUtil jwtUtil; // Mock 처리
+
 
     private Member testMember;
 
