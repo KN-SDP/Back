@@ -30,28 +30,37 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private String frontendUrl;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException{
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         try {
+            log.info("✔️ [SuccessHandler] onAuthenticationSuccess 실행됨");
+
             OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            log.info("✔️ [SuccessHandler] authentication.getPrincipal(): {}", oAuth2User);
 
-            // 1. UserService에서 "id"로 지정했던 Principal의 name을 가져옵니다.
+            // 1. UserService에서 지정한 Principal name 가져오기
             String userIdStr = oAuth2User.getName();
-            Long userId = Long.valueOf(userIdStr);
+            log.info("➡️ [SuccessHandler] oAuth2User.getName() = {}", userIdStr);
 
-            // 2. ID를 사용해 DB에서 최신 Member 정보를 직접 조회합니다.
+            Long userId = Long.valueOf(userIdStr);
+            log.info("➡️ [SuccessHandler] 파싱된 userId = {}", userId);
+
+            // 2. DB에서 유저 찾기
             Member member = memberRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("OAuth2 오류: DB에 해당 ID의 사용자가 없습니다: " + userId));
 
-            // 안전 방어: birth가 null이면 신규 유저로 간주 (기존 로직 동일)
-            boolean isNewUser = member.getBirth() == null || member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
+            log.info("✔️ [SuccessHandler] DB Member 조회 성공: id={}, email={}", member.getId(), member.getEmail());
 
-            // JWT 생성 — 예외 잡기
+            boolean isNewUser = member.getBirth() == null || member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
+            log.info("➡️ [SuccessHandler] isNewUser = {}", isNewUser);
+
+            // 3. JWT 생성
             String token;
             try {
                 token = jwtUtil.generateToken(member);
+                log.info("✔️ [SuccessHandler] JWT 생성 완료");
+                log.info("🪪 [SuccessHandler] token = {}", token);
             } catch (Exception e) {
-                // token 생성 실패 시 로그 찍고 에러 리다이렉트
-                logger.error("JWT 생성 실패", e);
+                log.error("❌ [SuccessHandler] JWT 생성 실패", e);
                 String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                         .queryParam("error", "token_generation_failed")
                         .build().toUriString();
@@ -59,21 +68,24 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 return;
             }
 
+            // 4. 최종 Redirect
             String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                     .queryParam("token", token)
                     .queryParam("isNewUser", isNewUser)
                     .build().toUriString();
 
+            log.info("➡️ [SuccessHandler] 최종 Redirect URL = {}", targetUrl);
+
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
+
         } catch (Exception ex) {
-            logger.error("OAuth2 onAuthenticationSuccess 처리 중 오류", ex);
-            // 에러 시 프론트로 에러코드 전달
+            log.error("❌ [SuccessHandler] onAuthenticationSuccess 처리 중 오류 발생", ex);
+
             String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
                     .queryParam("error", "server_error")
                     .build().toUriString();
+
             getRedirectStrategy().sendRedirect(request, response, target);
         }
     }
-
-
 }

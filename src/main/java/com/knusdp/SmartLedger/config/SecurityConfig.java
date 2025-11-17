@@ -2,6 +2,7 @@ package com.knusdp.SmartLedger.config;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,7 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
-
+@Slf4j
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
@@ -64,10 +65,15 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService) // 사용자 정보 처리
-                        )
-                        .successHandler(oAuth2LoginSuccessHandler) // 로그인 성공 후 JWT 발급/리디렉션 처리
+                        .loginPage("/oauth2/authorization/google")
+                        .userInfoEndpoint(userInfo -> {
+                            log.info("➡️ [SecurityConfig] OAuth2 UserInfoEndpoint 호출됨");
+                            userInfo.userService(customOAuth2UserService); // 사용자 정보 처리
+                        })
+                        .successHandler((request, response, authentication) -> {
+                            log.info("✔ [SecurityConfig] OAuth2 로그인 성공 - SuccessHandler 호출됨");
+                            oAuth2LoginSuccessHandler.onAuthenticationSuccess(request, response, authentication);
+                        }) // 로그인 성공 후 JWT 발급/리디렉션 처리
                 )
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) -> {
