@@ -65,7 +65,6 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .loginPage("/oauth2/authorization/google")
                         .userInfoEndpoint(userInfo -> {
                             log.info("➡️ [SecurityConfig] OAuth2 UserInfoEndpoint 호출됨");
                             userInfo.userService(customOAuth2UserService); // 사용자 정보 처리
