@@ -4,7 +4,6 @@ import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -14,11 +13,10 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.invoke.CallSite;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,37 +29,48 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         log.info("➡️ [OAuth2] CustomOAuth2UserService.loadUser() 실행됨");
         log.info("➡️ [OAuth2] provider: {}", userRequest.getClientRegistration().getRegistrationId());
-        log.info("➡️ [OAuth2] accessToken: {}", userRequest.getAccessToken().getTokenValue());
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
-
-        log.info("✔ [OAuth2] 구글에서 유저 정보 가져옴: {}", oAuth2User.getAttributes());
-
-        // 1. 원본 attributes 보존 및 수정을 위해 HashMap으로 복사
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
-        String providerId = (attributes.get("sub") != null) ? attributes.get("sub").toString() : null;
-        String email = (attributes.get("email") != null) ? attributes.get("email").toString() : null;
-        String name = (attributes.get("name") != null) ? attributes.get("name").toString() : null;
-        log.info("➡️ [OAuth2] providerId={}", providerId);
-        log.info("➡️ [OAuth2] email={}", email);
-        log.info("➡️ [OAuth2] name={}", name);
+        String providerId = null;
+        String email = null;
+        String name = null;
 
-        log.info("➡️ [OAuth2] memberService.findOrCreateSocialUser() 호출됨");
+        // ------------ GOOGLE --------------
+        if (provider.equals("google")) {
+            log.info("✔ Google OAuth 처리");
+            providerId = attributes.get("sub").toString();
+            email = attributes.get("email").toString();
+            name = attributes.get("name").toString();
+        }
+
+        // ------------ KAKAO --------------
+        else if (provider.equals("kakao")) {
+            log.info("✔ Kakao OAuth 처리");
+
+            providerId = attributes.get("id").toString();
+
+            Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+
+            email = kakaoAccount.get("email") != null ? kakaoAccount.get("email").toString() : null;
+            name = profile.get("nickname") != null ? profile.get("nickname").toString() : null;
+        }
+
+        log.info("📌 결과 provider={}, providerId={}, email={}, name={}", provider, providerId, email, name);
+
+        // DB 저장 / 조회
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
-        log.info("✔ [OAuth2] 회원 조회/생성 완료. 우리 DB memberId={}", member.getId());
+        log.info("✔ Member 저장/조회 완료: memberId={}", member.getId());
 
-        // 2. attributes 맵에 우리 시스템의 정보 덮어쓰기
-        attributes.put("id", member.getId()); // 우리 DB의 PK
+        attributes.put("id", member.getId());
 
-        log.info("✔ [OAuth2] DefaultOAuth2User로 반환 (principal name=id)");
-
-        // 3. Principal의 .getName()이 "id" 키의 값을 반환하도록 명시적으로 고정
         return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), // 기본 권한 부여
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,
-                "id" // <-- "sub"가 아닌 "id"로 고정!
+                "id"  // getName() → memberId
         );
     }
 }
