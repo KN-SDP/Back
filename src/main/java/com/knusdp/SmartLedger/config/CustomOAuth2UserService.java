@@ -47,19 +47,33 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         // ------------ KAKAO --------------
+        // ------------ KAKAO --------------
         else if (provider.equals("kakao")) {
             log.info("✔ Kakao OAuth 처리");
 
             providerId = attributes.get("id").toString();
 
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+            Map<String, Object> profile = kakaoAccount != null
+                    ? (Map<String, Object>) kakaoAccount.get("profile")
+                    : null;
 
-            email = kakaoAccount.get("email") != null ? kakaoAccount.get("email").toString() : null;
-            name = profile.get("nickname") != null ? profile.get("nickname").toString() : null;
+            // 이메일
+            if (kakaoAccount != null && kakaoAccount.get("email") != null) {
+                email = kakaoAccount.get("email").toString();
+            } else {
+                // fallback: 이메일 미제공 시 임의 아이디 생성
+                email = provider + "_" + providerId;
+                log.warn("⚠ 카카오 이메일 제공 안됨 – fallback email 생성: {}", email);
+            }
+
+            // 닉네임
+            if (profile != null && profile.get("nickname") != null) {
+                name = profile.get("nickname").toString();
+            } else {
+                name = "kakaoUser_" + providerId.substring(0, 6);
+            }
         }
-
-        log.info("📌 결과 provider={}, providerId={}, email={}, name={}", provider, providerId, email, name);
 
         // DB 저장 / 조회
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
