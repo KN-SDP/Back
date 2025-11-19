@@ -46,7 +46,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             name = attributes.get("name").toString();
         }
 
-        // ------------ KAKAO --------------
         if (provider.equals("kakao")) {
             log.info("➡️ [OAuth2] Kakao attributes = {}", attributes);
 
@@ -64,6 +63,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 }
             }
         }
+
         // DB 저장 / 조회
         Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
         log.info("✔ Member 저장/조회 완료: memberId={}", member.getId());
