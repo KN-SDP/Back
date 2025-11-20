@@ -104,7 +104,7 @@ class OAuth2LoginSuccessHandlerTest {
         String redirectUrl = response.getRedirectedUrl();
 
         // application-test.yml에 설정된 frontend.url 값("http://localhost:3000")을 확인
-        assertThat(redirectUrl).startsWith("http://localhost:3000/oauth-redirect");
+        assertThat(redirectUrl).startsWith("http://localhost:3000");
         assertThat(redirectUrl).contains("?token=mockToken");
         assertThat(redirectUrl).contains("&isNewUser=false"); // 1900-01-01이 아니므로 false
     }

@@ -61,7 +61,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
                 log.info("🪪 [SuccessHandler] token = {}", token);
             } catch (Exception e) {
                 log.error("❌ [SuccessHandler] JWT 생성 실패", e);
-                String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                String target = UriComponentsBuilder.fromUriString(frontendUrl)
                         .queryParam("error", "token_generation_failed")
                         .build().toUriString();
                 getRedirectStrategy().sendRedirect(request, response, target);
@@ -69,7 +69,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             }
 
             // 4. 최종 Redirect
-            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl)
                     .queryParam("token", token)
                     .queryParam("isNewUser", isNewUser)
                     .build().toUriString();
@@ -81,7 +81,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         } catch (Exception ex) {
             log.error("❌ [SuccessHandler] onAuthenticationSuccess 처리 중 오류 발생", ex);
 
-            String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+            String target = UriComponentsBuilder.fromUriString(frontendUrl)
                     .queryParam("error", "server_error")
                     .build().toUriString();
 
