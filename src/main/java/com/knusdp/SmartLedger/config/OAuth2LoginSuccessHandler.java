@@ -69,8 +69,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             }
 
             // 4. 최종 Redirect
-            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
-                    .queryParam("token", token)
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl)
                     .queryParam("isNewUser", isNewUser)
                     .build().toUriString();
 
@@ -81,7 +80,7 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         } catch (Exception ex) {
             log.error("❌ [SuccessHandler] onAuthenticationSuccess 처리 중 오류 발생", ex);
 
-            String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+            String target = UriComponentsBuilder.fromUriString(frontendUrl)
                     .queryParam("error", "server_error")
                     .build().toUriString();
 
