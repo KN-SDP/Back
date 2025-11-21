@@ -99,6 +99,7 @@ public class AccountBookService {
                 .collect(Collectors.toList());
     }
 
+
     //  카테고리별 조회
     public List<LedgerResponseDto> findEntriesByCategory(
             Long memberId,

@@ -47,32 +47,43 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         // ------------ KAKAO --------------
-        // ------------ KAKAO --------------
         else if (provider.equals("kakao")) {
             log.info("✔ Kakao OAuth 처리");
-
             providerId = attributes.get("id").toString();
-
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            Map<String, Object> profile = kakaoAccount != null
-                    ? (Map<String, Object>) kakaoAccount.get("profile")
-                    : null;
+            Map<String, Object> profile = kakaoAccount != null ? (Map<String, Object>) kakaoAccount.get("profile") : null;
 
-            // 이메일
             if (kakaoAccount != null && kakaoAccount.get("email") != null) {
                 email = kakaoAccount.get("email").toString();
             } else {
-                // fallback: 이메일 미제공 시 임의 아이디 생성
                 email = provider + "_" + providerId;
-                log.warn("⚠ 카카오 이메일 제공 안됨 – fallback email 생성: {}", email);
             }
 
-            // 닉네임
             if (profile != null && profile.get("nickname") != null) {
                 name = profile.get("nickname").toString();
             } else {
                 name = "kakaoUser_" + providerId.substring(0, 6);
             }
+        }
+
+        // ------------ NAVER  --------------
+        else if (provider.equals("naver")) {
+            log.info("✔ Naver OAuth 처리");
+            // 네이버는 "response"라는 키 안에 실제 정보가 들어있음
+            Map<String, Object> response = (Map<String, Object>) attributes.get("response");
+
+            if (response == null) {
+                throw new OAuth2AuthenticationException("네이버 로그인 오류: response 정보가 없습니다.");
+            }
+
+            // 네이버의 고유 ID는 "id" 필드임
+            providerId = (String) response.get("id");
+            email = (String) response.get("email");
+            name = (String) response.get("name"); // 또는 nickname
+
+            // (선택) 네이버 전화번호나 생일 정보도 제공된다면 여기서 가져올 수 있음
+            // String mobile = (String) response.get("mobile");
+            // String birthday = (String) response.get("birthday");
         }
 
         // DB 저장 / 조회
@@ -84,7 +95,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,
-                "id"  // getName() → memberId
+                "id"
         );
     }
 }
