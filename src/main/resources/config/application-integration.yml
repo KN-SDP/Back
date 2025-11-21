@@ -2,7 +2,7 @@ server:
   forward-headers-strategy: framework
 
 frontend:
-  url: "https://knusdpsl.mooo.com"
+  url: "http://localhost:8081"
   
 spring:
   datasource:
