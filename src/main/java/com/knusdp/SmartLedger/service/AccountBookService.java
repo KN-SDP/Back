@@ -73,24 +73,36 @@ public class AccountBookService {
 
         Specification<AccountBook> spec = Specification.where(AccountBookSpecification.hasMemberId(memberId));
 
-        if (dto.getYear() != null) {
-            spec = spec.and(AccountBookSpecification.hasYear(dto.getYear()));
-        }
-        if (dto.getMonth() != null) {
-            if (dto.getMonth() < 1 || dto.getMonth() > 12) {
-                throw new IllegalArgumentException("월(month)은 1~12 사이여야 합니다.");
-            }
-            spec = spec.and(AccountBookSpecification.hasMonth(dto.getMonth()));
-        }
+        // 날짜 관련 처리
         if (dto.getDay() != null) {
-            if (dto.getDay() < 1 || dto.getDay() > 31) {
-                throw new IllegalArgumentException("일(day)은 1~31 사이여야 합니다.");
+            // day가 있으면 year/month도 반드시 있어야 함
+            if (dto.getYear() == null || dto.getMonth() == null) {
+                throw new IllegalArgumentException("일(day) 조건을 사용할 때는 year, month도 함께 전달해야 합니다.");
             }
-            spec = spec.and(AccountBookSpecification.hasDay(dto.getDay()));
+
+            spec = spec.and(AccountBookSpecification.hasExactDate(
+                    dto.getYear(),
+                    dto.getMonth(),
+                    dto.getDay()
+            ));
+
+        } else {
+            // day가 없으면 기존 year/month 조건만 적용
+            if (dto.getYear() != null) {
+                spec = spec.and(AccountBookSpecification.hasYear(dto.getYear()));
+            }
+            if (dto.getMonth() != null) {
+                if (dto.getMonth() < 1 || dto.getMonth() > 12) {
+                    throw new IllegalArgumentException("월(month)은 1~12 사이여야 합니다.");
+                }
+                spec = spec.and(AccountBookSpecification.hasMonth(dto.getMonth()));
+            }
         }
+
         if (dto.getTransactionType() != null) {
             spec = spec.and(AccountBookSpecification.hasTransactionType(dto.getTransactionType()));
         }
+
         if (dto.getCategoryName() != null && !dto.getCategoryName().isBlank()) {
             spec = spec.and(AccountBookSpecification.hasCategoryName(dto.getCategoryName()));
         }
@@ -101,6 +113,7 @@ public class AccountBookService {
                 .map(LedgerResponseDto::new)
                 .collect(Collectors.toList());
     }
+
 
     //  카테고리별 조회
     public List<LedgerResponseDto> findEntriesByCategory(
