@@ -1,26 +1,51 @@
-server:
-  forward-headers-strategy: framework
+  server:
+    forward-headers-strategy: framework
 
-frontend:
-  url: "https://knusdpsl.mooo.com"
-  
-spring:
-  datasource:
-    url: ${SPRING_DATASOURCE_URL}
-    username: ${SPRING_DATASOURCE_USERNAME}
-    password: ${SPRING_DATASOURCE_PASSWORD}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  security:
-    oauth2:
-      client:
-        registration:
-          google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+  frontend:
+    url: "https://web-front-mhvqlrzi1b9d488f.sel3.cloudtype.app/"
 
-crypto:
-  secret-key: ${CRYPTO_KEY}
-  init-vector: ${CRYPTO_INIT_VECTOR}
+  spring:
+    datasource:
+      url: ${SPRING_DATASOURCE_URL}
+      username: ${SPRING_DATASOURCE_USERNAME}
+      password: ${SPRING_DATASOURCE_PASSWORD}
+      driver-class-name: com.mysql.cj.jdbc.Driver
+    security:
+      oauth2:
+        client:
+          registration:
+            google:
+              client-id: ${GOOGLE_CLIENT_ID}
+              client-secret: ${GOOGLE_CLIENT_SECRET}
+              #redirect-uri: ${GOOGLE_REDIRECT}
+              scope: email, profile
 
-jwt:
-  secret-key: ${JWT_SECRET_KEY}
+            kakao:
+              client-id: ${KAKAO_CLIENT_ID}
+              client-secret: ${KAKAO_CLIENT_SECRET}
+              redirect-uri: ${KAKAO_REDIRECT}
+              client-authentication-method: client_secret_post
+
+              authorization-grant-type: authorization_code
+              client-name: Kakao
+              scope: profile_nickname, account_email
+          provider:
+            google:
+              authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+              token-uri: https://oauth2.googleapis.com/token
+              user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+              user-name-attribute: sub
+
+            kakao:
+              authorization-uri: https://kauth.kakao.com/oauth/authorize
+              token-uri: https://kauth.kakao.com/oauth/token
+              user-info-uri: https://kapi.kakao.com/v2/user/me
+              user-name-attribute: id
+
+
+  crypto:
+    secret-key: ${CRYPTO_KEY}
+    init-vector: ${CRYPTO_INIT_VECTOR}
+
+  jwt:
+    secret-key: ${JWT_SECRET_KEY}

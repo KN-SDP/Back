@@ -22,6 +22,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
 
+    /**
+     * 특정 요청은 JWT 필터를 건너뛰도록 설정
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+
+        // Google OAuth Redirect
+        if (path.equals("/oauth-redirect")) {
+            return true;
+        }
+
+        // OAuth2 로그인 과정 전체 제외
+        if (path.startsWith("/login/oauth2") || path.startsWith("/oauth2")) {
+            return true;
+        }
+
+        // Spring Security 내부 /login 요청도 제외해야 오류가 안 남
+        if (path.equals("/login")) {
+            return true;
+        }
+
+        return false;
+    }
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -35,20 +61,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             jwt = authorizationHeader.substring(7);
             if (jwtUtil.validateToken(jwt)) {
                 userId = jwtUtil.getUserIdFromToken(jwt);
-
             }
         }
 
         if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            // Spring Security가 이해할 수 있는 UserDetails 객체 생성
-            // Principal(주체)로 고유한 userId를 사용
             UserDetails userDetails = new User(userId, "", Collections.emptyList());
 
-            // 인증 객체 생성
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.getAuthorities());
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-            // SecurityContext에 인증 정보 등록
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
 

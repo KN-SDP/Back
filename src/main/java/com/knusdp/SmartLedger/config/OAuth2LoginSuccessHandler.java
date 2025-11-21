@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -15,7 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -27,26 +30,62 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
     private String frontendUrl;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        // 1. 인증된 Principal(주체) 객체를 가져옴
-        OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        try {
+            log.info("✔️ [SuccessHandler] onAuthenticationSuccess 실행됨");
 
-        // 2. Principal의 'name' 속성(우리가 "id"로 설정한 값)을 가져옴
-        Long userId = Long.parseLong(oAuth2User.getName());
+            OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
+            log.info("✔️ [SuccessHandler] authentication.getPrincipal(): {}", oAuth2User);
 
-        // 3. DB에서 전체 Member 정보를 조회 (토큰에 모든 정보를 담기 위해)
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("OAuth2 로그인 오류: 사용자를 DB에서 찾을 수 없습니다."));
+            // 1. UserService에서 지정한 Principal name 가져오기
+            String userIdStr = oAuth2User.getName();
+            log.info("➡️ [SuccessHandler] oAuth2User.getName() = {}", userIdStr);
 
-        // 4. JWT 토큰 생성
-        String token = jwtUtil.generateToken(member);
+            Long userId = Long.valueOf(userIdStr);
+            log.info("➡️ [SuccessHandler] 파싱된 userId = {}", userId);
 
-        // 5. 토큰을 쿼리 파라미터로 포함하여 프론트엔드로 리디렉션
-        // 예: https://knusdpsl.mooo.com/oauth-redirect?token=eyJh...
-        String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect") // 프론트의 리디렉션 처리 페이지
-                .queryParam("token", token)
-                .build().toUriString();
+            // 2. DB에서 유저 찾기
+            Member member = memberRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("OAuth2 오류: DB에 해당 ID의 사용자가 없습니다: " + userId));
 
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            log.info("✔️ [SuccessHandler] DB Member 조회 성공: id={}, email={}", member.getId(), member.getEmail());
+
+            boolean isNewUser = member.getBirth() == null || member.getBirth().isEqual(LocalDate.of(1900, 1, 1));
+            log.info("➡️ [SuccessHandler] isNewUser = {}", isNewUser);
+
+            // 3. JWT 생성
+            String token;
+            try {
+                token = jwtUtil.generateToken(member);
+                log.info("✔️ [SuccessHandler] JWT 생성 완료");
+                log.info("🪪 [SuccessHandler] token = {}", token);
+            } catch (Exception e) {
+                log.error("❌ [SuccessHandler] JWT 생성 실패", e);
+                String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                        .queryParam("error", "token_generation_failed")
+                        .build().toUriString();
+                getRedirectStrategy().sendRedirect(request, response, target);
+                return;
+            }
+
+            // 4. 최종 Redirect
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                    .queryParam("token", token)
+                    .queryParam("isNewUser", isNewUser)
+                    .build().toUriString();
+
+            log.info("➡️ [SuccessHandler] 최종 Redirect URL = {}", targetUrl);
+
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+
+        } catch (Exception ex) {
+            log.error("❌ [SuccessHandler] onAuthenticationSuccess 처리 중 오류 발생", ex);
+
+            String target = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
+                    .queryParam("error", "server_error")
+                    .build().toUriString();
+
+            getRedirectStrategy().sendRedirect(request, response, target);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.knusdp.SmartLedger.controller;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.knusdp.SmartLedger.dto.ErrorResponseDto;
 import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.*;
@@ -9,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -16,8 +18,18 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.Map;
 
 @Slf4j
-@RestControllerAdvice(basePackages = "com.knusdp.SmartLedger.controller")
+@RestControllerAdvice(basePackages = "com.knusdp.SmartLedger")
+
 public class GlobalExceptionHandler {
+
+
+    //
+    @ExceptionHandler(InvalidFormatException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidFormatException(InvalidFormatException ex) {
+
+        throw new InvalidAmountException("금액은 숫자 형식이어야 합니다.");
+    }
+
 
     // EmailDuplicateException이 발생하면 이 메소드가 실행됩니다.
     @ExceptionHandler(EmailDuplicateException.class)
@@ -100,7 +112,10 @@ public class GlobalExceptionHandler {
         // 예외가 발생한 파라미터의 이름을 확인하여 메시지를 분기 처리
         String parameterName = ex.getName();
 
-        if ("id".equals(parameterName) || "transactionId".equals(parameterName) || "categoryId".equals(parameterName)) {
+        if ("amount".equals(parameterName)) {
+            errorCode = "INVALID_AMOUNT_FORMAT";
+            message = "금액은 숫자 형식이어야 합니다.";
+        } else if ("id".equals(parameterName) || "transactionId".equals(parameterName) || "categoryId".equals(parameterName)) {
             errorCode = "INVALID_ID_FORMAT";
             message = "ID는 숫자 형식이어야 합니다.";
         } else if ("year".equals(parameterName) || "month".equals(parameterName)) {
@@ -110,6 +125,7 @@ public class GlobalExceptionHandler {
             errorCode = "INVALID_TRANSACTION_TYPE";
             message = "거래 타입은 'INCOME', 'EXPENSE', 'SAVING', 'TRANSFER' 중 하나여야 합니다.";
         }
+
         ErrorResponseDto error = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
                 errorCode,
@@ -117,6 +133,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
@@ -174,6 +191,7 @@ public class GlobalExceptionHandler {
                 "message", e.getMessage()
         ));
     }
+
 
 
 
