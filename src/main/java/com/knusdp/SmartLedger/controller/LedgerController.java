@@ -42,6 +42,7 @@ public class LedgerController {
             // @RequestParam(required = false)를 사용하여 모든 파라미터를 선택적으로 받음
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer day,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) TransactionType type
     ) {
@@ -52,6 +53,7 @@ public class LedgerController {
         LedgerSearchRequestDto searchDto = new LedgerSearchRequestDto();
         searchDto.setYear(year);
         searchDto.setMonth(month);
+        searchDto.setDay(day);
         searchDto.setCategoryName(category);
         searchDto.setTransactionType(type);
 

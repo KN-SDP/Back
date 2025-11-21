@@ -82,6 +82,12 @@ public class AccountBookService {
             }
             spec = spec.and(AccountBookSpecification.hasMonth(dto.getMonth()));
         }
+        if (dto.getDay() != null) {
+            if (dto.getDay() < 1 || dto.getDay() > 31) {
+                throw new IllegalArgumentException("일(day)은 1~31 사이여야 합니다.");
+            }
+            spec = spec.and(AccountBookSpecification.hasDay(dto.getDay()));
+        }
         if (dto.getTransactionType() != null) {
             spec = spec.and(AccountBookSpecification.hasTransactionType(dto.getTransactionType()));
         }
