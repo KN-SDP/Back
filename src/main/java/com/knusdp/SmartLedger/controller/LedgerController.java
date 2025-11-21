@@ -42,6 +42,7 @@ public class LedgerController {
             // @RequestParam(required = false)를 사용하여 모든 파라미터를 선택적으로 받음
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer day,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) TransactionType type
     ) {
@@ -52,6 +53,7 @@ public class LedgerController {
         LedgerSearchRequestDto searchDto = new LedgerSearchRequestDto();
         searchDto.setYear(year);
         searchDto.setMonth(month);
+        searchDto.setDay(day);
         searchDto.setCategoryName(category);
         searchDto.setTransactionType(type);
 
@@ -92,20 +94,7 @@ public class LedgerController {
 
         return ResponseEntity.ok(response);
     }
-    //년월별 조회 api
-    @GetMapping(params = {"year", "month"})
-    public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByYearAndMonth(
-            @RequestParam("year") int year,
-            @RequestParam("month") int month
-    ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = Long.parseLong(authentication.getName());
 
-        List<LedgerResponseDto> response = accountBookService.findLedgerEntriesByYearAndMonth(userId, year, month);
-
-        // 조회 결과를 200 OK 상태와 함께 반환
-        return ResponseEntity.ok(response);
-    }
     //거래내역 상세 조회 api
     @GetMapping("/{id}")
     public ResponseEntity<LedgerResponseDto> getLedgerEntry(@PathVariable("id") Long transactionId) {

@@ -7,6 +7,7 @@ import lombok.Data;
 public class LedgerSearchRequestDto {
     private Integer year;
     private Integer month;
+    private Integer day;
     private String categoryName;
     private TransactionType transactionType;
 }

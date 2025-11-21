@@ -82,6 +82,9 @@ public class AccountBookService {
             }
             spec = spec.and(AccountBookSpecification.hasMonth(dto.getMonth()));
         }
+        if (dto.getDay() != null) {
+            spec = spec.and(AccountBookSpecification.hasDay(dto.getDay()));
+        }
         if (dto.getTransactionType() != null) {
             spec = spec.and(AccountBookSpecification.hasTransactionType(dto.getTransactionType()));
         }
