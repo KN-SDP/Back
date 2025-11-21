@@ -27,6 +27,7 @@ public class AccountBookSpecification {
                 cb.function("MONTH", Integer.class, root.get("transactionDate")), month
         );
     }
+
     public static Specification<AccountBook> hasExactDate(int year, int month, int day) {
         return (root, query, cb) -> {
             LocalDate date = LocalDate.of(year, month, day);
@@ -38,6 +39,7 @@ public class AccountBookSpecification {
             );
         };
     }
+
 
 
     // 조건 3: 거래 타입(transactionType)이 일치하는지
