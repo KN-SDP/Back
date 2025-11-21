@@ -82,6 +82,9 @@ public class AccountBookService {
             }
             spec = spec.and(AccountBookSpecification.hasMonth(dto.getMonth()));
         }
+        if (dto.getDay() != null) {
+            spec = spec.and(AccountBookSpecification.hasDay(dto.getDay()));
+        }
         if (dto.getTransactionType() != null) {
             spec = spec.and(AccountBookSpecification.hasTransactionType(dto.getTransactionType()));
         }
@@ -95,6 +98,7 @@ public class AccountBookService {
                 .map(LedgerResponseDto::new)
                 .collect(Collectors.toList());
     }
+
 
     //  카테고리별 조회
     public List<LedgerResponseDto> findEntriesByCategory(

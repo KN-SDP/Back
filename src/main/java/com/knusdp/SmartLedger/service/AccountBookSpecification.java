@@ -28,6 +28,12 @@ public class AccountBookSpecification {
         );
     }
 
+    public static Specification<AccountBook> hasDay(int day) {
+        return (root, query, cb) -> cb.equal(
+                cb.function("DAY", Integer.class, root.get("transactionDate")), day
+        );
+    }
+
     // 조건 3: 거래 타입(transactionType)이 일치하는지
     public static Specification<AccountBook> hasTransactionType(TransactionType type) {
         return (root, query, cb) -> cb.equal(root.get("transactionType"), type);
