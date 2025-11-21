@@ -94,20 +94,7 @@ public class LedgerController {
 
         return ResponseEntity.ok(response);
     }
-    //년월별 조회 api
-    @GetMapping(params = {"year", "month"})
-    public ResponseEntity<List<LedgerResponseDto>> getLedgerEntriesByYearAndMonth(
-            @RequestParam("year") int year,
-            @RequestParam("month") int month
-    ) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        Long userId = Long.parseLong(authentication.getName());
 
-        List<LedgerResponseDto> response = accountBookService.findLedgerEntriesByYearAndMonth(userId, year, month);
-
-        // 조회 결과를 200 OK 상태와 함께 반환
-        return ResponseEntity.ok(response);
-    }
     //거래내역 상세 조회 api
     @GetMapping("/{id}")
     public ResponseEntity<LedgerResponseDto> getLedgerEntry(@PathVariable("id") Long transactionId) {
