@@ -1,5 +1,4 @@
 spring:
-  # 1. 'default'나 'group' 대신 'local' 프로필을 항상 활성화하도록 명시합니다.
   profiles:
     active: integration
 
