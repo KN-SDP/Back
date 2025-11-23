@@ -11,6 +11,7 @@ import com.knusdp.SmartLedger.repository.GoalRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
+
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -45,6 +46,7 @@ public class GoalController {
             )
     )
 
+
     @Operation(
             summary = "목표 생성",
             requestBody = @RequestBody(
@@ -56,6 +58,7 @@ public class GoalController {
             )
     )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
     public ResponseEntity<String> createGoal(
             @Valid @RequestPart("data") CreateGoalRequestDto dto,
             @RequestPart(value = "image", required = false) MultipartFile image
