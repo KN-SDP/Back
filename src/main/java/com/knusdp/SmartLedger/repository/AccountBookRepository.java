@@ -35,4 +35,13 @@ public interface AccountBookRepository extends JpaRepository<AccountBook, Long>,
             @Param("month") int month
     );
     Optional<AccountBook> findByMemberIdAndTransactionId(Long memberId, Long transactionId);
+
+    @Query("SELECT COALESCE(SUM(ab.amount), 0) FROM AccountBook ab " +
+            "WHERE ab.member.id = :memberId " +
+            "AND ab.category.categoryId = :categoryId " +
+            "AND ab.transactionType = com.knusdp.SmartLedger.entity.TransactionType.EXPENSE")
+    Long getUsedAmount(
+            @Param("memberId") Long memberId,
+            @Param("categoryId") Long categoryId
+    );
 }

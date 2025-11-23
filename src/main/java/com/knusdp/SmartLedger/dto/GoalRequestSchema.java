@@ -1,6 +1,7 @@
 package com.knusdp.SmartLedger.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -16,5 +17,6 @@ public class GoalRequestSchema {
     @Schema(description = "업로드할 이미지 파일", type = "string", format = "binary")
     private MultipartFile image;
 }
+
 
 
