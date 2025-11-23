@@ -10,12 +10,16 @@ import com.knusdp.SmartLedger.exception.UserNotFoundException;
 import com.knusdp.SmartLedger.repository.GoalRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.GoalService;
+import io.swagger.v3.oas.annotations.Operation;
+
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import jakarta.validation.Valid; // @Valid 사용을 위해 import
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -42,7 +46,19 @@ public class GoalController {
             )
     )
 
-    @PostMapping(consumes = "multipart/form-data")
+
+    @Operation(
+            summary = "목표 생성",
+            requestBody = @RequestBody(
+                    required = true,
+                    content = @Content(
+                            mediaType = "multipart/form-data",
+                            schema = @Schema(implementation = GoalRequestSchema.class)
+                    )
+            )
+    )
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
     public ResponseEntity<String> createGoal(
             @Valid @RequestPart("data") CreateGoalRequestDto dto,
             @RequestPart(value = "image", required = false) MultipartFile image
