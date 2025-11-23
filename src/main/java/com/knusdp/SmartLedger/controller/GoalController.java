@@ -1,6 +1,7 @@
 package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.CreateGoalRequestDto;
+import com.knusdp.SmartLedger.dto.GoalRequestSchema;
 import com.knusdp.SmartLedger.dto.GoalResponseDto;
 import com.knusdp.SmartLedger.dto.UpdateGoalRequestDto;
 import com.knusdp.SmartLedger.entity.Goal;
@@ -9,6 +10,8 @@ import com.knusdp.SmartLedger.exception.UserNotFoundException;
 import com.knusdp.SmartLedger.repository.GoalRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.GoalService;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid; // @Valid 사용을 위해 import
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,12 @@ public class GoalController {
     private final GoalService goalService;
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    mediaType = "multipart/form-data",
+                    schema = @Schema(implementation = GoalRequestSchema.class)
+            )
+    )
 
     @PostMapping(consumes = "multipart/form-data")
     public ResponseEntity<String> createGoal(
