@@ -6,6 +6,10 @@ import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.*;
 import com.knusdp.SmartLedger.exception.asset.AssetNotFoundException;
 import com.knusdp.SmartLedger.exception.asset.InvalidDateRangeException;
+import com.knusdp.SmartLedger.exception.budget.BudgetAlreadyExistsException;
+import com.knusdp.SmartLedger.exception.budget.BudgetNotFoundException;
+import com.knusdp.SmartLedger.exception.budget.CategoryNotFoundException;
+import com.knusdp.SmartLedger.exception.budget.NoBudgetEntriesException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -191,6 +195,50 @@ public class GlobalExceptionHandler {
                 "message", e.getMessage()
         ));
     }
+
+
+
+    //Budget 예외
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleCategoryNotFoundException(CategoryNotFoundException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                404,
+                "CATEGORY_NOT_FOUND",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BudgetAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDto> handleBudgetAlreadyExistsException(BudgetAlreadyExistsException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                409,
+                "BUDGET_ALREADY_EXISTS",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(NoBudgetEntriesException.class)
+    public ResponseEntity<ErrorResponseDto> handleNoBudgetEntriesException(NoBudgetEntriesException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                404,
+                "NO_BUDGET_ENTRIES",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BudgetNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleBudgetNotFound(BudgetNotFoundException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                404,
+                "BUDGET_NOT_FOUND",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
 
 
 
