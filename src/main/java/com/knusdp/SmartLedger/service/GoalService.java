@@ -15,7 +15,9 @@ import com.knusdp.SmartLedger.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,23 +28,35 @@ public class GoalService {
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final GoalRepository goalRepository;
+    private final S3UploadService s3UploadService;
 
     @Transactional
-    public Goal createGoal(Long memberId, CreateGoalRequestDto dto) {
-        // 사용자 조회 (없으면 UserNotFoundException 발생)
+    public Goal createGoal(Long memberId, CreateGoalRequestDto dto, MultipartFile image) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
+        String imageUrl = null;
+
+        // 🔥 이미지 있으면 업로드
+        if (image != null && !image.isEmpty()) {
+            try {
+                imageUrl = s3UploadService.saveFile(image);
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
+            }
+        }
+
         Goal newGoal = Goal.builder()
                 .title(dto.getTitle())
-                .imageUrl(dto.getImageUrl())
                 .targetAmount(dto.getTargetAmount())
                 .deadline(dto.getDeadline())
+                .imageUrl(imageUrl) // 🔥 업로드된 URL 저장
                 .member(member)
                 .build();
 
         return goalRepository.save(newGoal);
     }
+
     public List<GoalResponseDto> findGoalsByMemberId(Long memberId) {
         // 1. 리포지토리 호출하여 특정 사용자의 목표 목록 조회
         List<Goal> goals = goalRepository.findByMember_IdOrderByCreatedAtDesc(memberId);
