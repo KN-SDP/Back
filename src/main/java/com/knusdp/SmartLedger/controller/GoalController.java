@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -32,17 +33,20 @@ public class GoalController {
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
 
-    @PostMapping
-    public ResponseEntity<String> createGoal(@Valid @RequestBody CreateGoalRequestDto dto) {
+    @PostMapping(consumes = "multipart/form-data")
+    public ResponseEntity<String> createGoal(
+            @Valid @RequestPart("data") CreateGoalRequestDto dto,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-        goalService.createGoal(userId, dto); // 서비스 호출
+        goalService.createGoal(userId, dto, image);
 
-        // 성공 메시지 문자열과 201 Created 상태 반환
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("목표가 생성되었습니다");
     }
+
 
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {
