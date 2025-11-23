@@ -41,7 +41,6 @@ public class S3UploadService {
     }
     public ResponseEntity<UrlResource> downloadImage(String originalFilename) {
         UrlResource urlResource = new UrlResource(amazonS3.getUrl(bucket, originalFilename));
-
         String contentDisposition = "attachment; filename=\"" +  originalFilename + "\"";
 
         // header에 CONTENT_DISPOSITION 설정을 통해 클릭 시 다운로드 진행
