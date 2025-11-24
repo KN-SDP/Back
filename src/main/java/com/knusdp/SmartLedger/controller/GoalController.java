@@ -41,14 +41,17 @@ public class GoalController {
     private final GoalService goalService;
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
-    @Operation(summary = "목표 생성 (이미지 업로드 포함)")
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 
+    @Operation(summary = "목표 생성 (이미지 업로드 포함)")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // multipart/form-data 필수
     public ResponseEntity<String> createGoal(
+            // JSON 데이터 처리
             @Valid
-            @RequestPart("data")
-            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) // ★ 핵심 설정
+            @RequestPart(value = "data")
+            @Parameter(schema = @Schema(type = "string", format = "binary")) // Swagger 설정용
             CreateGoalRequestDto dto,
+
+            // 이미지 파일 처리 (선택 사항이므로 required = false)
             @RequestPart(value = "image", required = false)
             MultipartFile image
     ) {
@@ -57,8 +60,7 @@ public class GoalController {
 
         goalService.createGoal(userId, dto, image);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("목표가 생성되었습니다");
+        return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
     }
 
 
