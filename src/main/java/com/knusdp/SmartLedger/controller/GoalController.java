@@ -41,7 +41,6 @@ public class GoalController {
     private final GoalService goalService;
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
-
     @Operation(summary = "목표 생성 (이미지 업로드 포함)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // multipart/form-data 필수
     public ResponseEntity<String> createGoal(
@@ -52,6 +51,7 @@ public class GoalController {
             CreateGoalRequestDto dto,
 
             // 이미지 파일 처리 (선택 사항이므로 required = false)
+
             @RequestPart(value = "image", required = false)
             MultipartFile image
     ) {
