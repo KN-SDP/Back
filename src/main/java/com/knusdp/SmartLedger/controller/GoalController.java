@@ -1,31 +1,22 @@
 package com.knusdp.SmartLedger.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper; // 추가됨
 import com.knusdp.SmartLedger.dto.CreateGoalRequestDto;
-import com.knusdp.SmartLedger.dto.GoalRequestSchema;
 import com.knusdp.SmartLedger.dto.GoalResponseDto;
 import com.knusdp.SmartLedger.dto.UpdateGoalRequestDto;
-import com.knusdp.SmartLedger.entity.Goal;
-import com.knusdp.SmartLedger.entity.Member;
-import com.knusdp.SmartLedger.exception.UserNotFoundException;
-import com.knusdp.SmartLedger.repository.GoalRepository;
-import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
-
-
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
-import jakarta.validation.Valid; // @Valid 사용을 위해 import
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,28 +24,25 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/goals") // 목표 관련 API의 기본 경로
+@RequestMapping("/goals")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
 public class GoalController {
 
     private final GoalService goalService;
-    private final GoalRepository goalRepository;
-    private final MemberRepository memberRepository;
+    private final ObjectMapper objectMapper; // JSON 변환기 주입
+
     @Operation(summary = "목표 생성 (이미지 업로드 포함)")
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE) // multipart/form-data 필수
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-            // JSON 데이터 처리
-            @Valid
-            @RequestPart(value = "data")
-            @Parameter(schema = @Schema(type = "string", format = "binary")) // Swagger 설정용
-            CreateGoalRequestDto dto,
+            // 변경점: DTO가 아니라 String으로 받음 (Content-Type 신경 안 써도 됨)
+            @RequestPart("data") String data,
 
-            // 이미지 파일 처리 (선택 사항이므로 required = false)
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) throws JsonProcessingException {
 
-            @RequestPart(value = "image", required = false)
-            MultipartFile image
-    ) {
+        // 1. 여기서 수동으로 String -> DTO 변환 (이러면 에러 안 남)
+        CreateGoalRequestDto dto = objectMapper.readValue(data, CreateGoalRequestDto.class);
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
@@ -63,55 +51,37 @@ public class GoalController {
         return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
     }
 
-
+    // ... 아래 getGoals, updateGoal 등 다른 메서드는 그대로 두세요 ...
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {
-        // 토큰에서 현재 사용자 ID 추출
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-
-        // 서비스 호출
         List<GoalResponseDto> response = goalService.findGoalsByMemberId(userId);
-
-        // 조회 결과를 200 OK 상태와 함께 반환
         return ResponseEntity.ok(response);
     }
 
+    // (나머지 코드 생략 - 기존과 동일)
     @GetMapping("/{id}")
     public ResponseEntity<GoalResponseDto> getGoal(@PathVariable("id") Long goalId) {
-        // 토큰에서 현재 사용자 ID 추출
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-
-        // 서비스 호출
         GoalResponseDto response = goalService.findGoalById(userId, goalId);
-
         return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<GoalResponseDto> updateGoal(
-            @PathVariable("id") Long goalId,
-            @Valid @RequestBody UpdateGoalRequestDto dto // @Valid 추가 (선택적)
-    ) {
+    public ResponseEntity<GoalResponseDto> updateGoal(@PathVariable("id") Long goalId, @RequestBody UpdateGoalRequestDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-
         GoalResponseDto updatedGoal = goalService.updateGoal(userId, goalId, dto);
-
-        return ResponseEntity.ok(updatedGoal); // 200 OK와 함께 수정된 목표 정보 반환
+        return ResponseEntity.ok(updatedGoal);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> deleteGoal(@PathVariable("id") Long goalId) { // 반환 타입을 Map으로 변경
-        // 토큰에서 현재 사용자 ID 추출
+    public ResponseEntity<Map<String, String>> deleteGoal(@PathVariable("id") Long goalId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-
-        // 서비스 호출하여 목표 삭제
         goalService.deleteGoal(userId, goalId);
-
-        // Map을 사용하여 성공 메시지 반환
         return ResponseEntity.ok(Map.of("message", "목표가 삭제되었습니다."));
     }
 }
