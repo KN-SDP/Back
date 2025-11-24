@@ -43,14 +43,12 @@ public class GoalController {
 
         // 1. 여기서 수동으로 String -> DTO 변환 (이러면 에러 안 남)
         CreateGoalRequestDto dto = objectMapper.readValue(data, CreateGoalRequestDto.class);
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
         goalService.createGoal(userId, dto, image);
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body("목표가 생성되었습니다");
+        return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
     }
 
     // ... 아래 getGoals, updateGoal 등 다른 메서드는 그대로 두세요 ...
