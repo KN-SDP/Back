@@ -20,9 +20,6 @@ public class CreateGoalRequestDto {
     @NotBlank(message = "목표 제목은 필수입니다.")
     private String title;
 
-    // 🔥 이미지 파일 직접 업로드
-    private MultipartFile image;
-
     @NotNull(message = "목표 금액은 필수입니다.")
     @DecimalMin(value = "1", message = "목표 금액은 0보다 커야 합니다.")
     private BigDecimal targetAmount;
