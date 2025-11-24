@@ -48,7 +48,6 @@ public class GoalController {
             @RequestPart("data")
             @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) // ★ 핵심 설정
             CreateGoalRequestDto dto,
-
             @RequestPart(value = "image", required = false)
             MultipartFile image
     ) {
