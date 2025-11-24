@@ -17,6 +17,3 @@ public class GoalRequestSchema {
     @Schema(description = "업로드할 이미지 파일", type = "string", format = "binary")
     private MultipartFile image;
 }
-
-
-

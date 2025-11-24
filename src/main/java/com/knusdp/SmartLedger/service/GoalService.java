@@ -31,26 +31,27 @@ public class GoalService {
     private final S3UploadService s3UploadService;
 
     @Transactional
-    public Goal createGoal(Long memberId, CreateGoalRequestDto dto, MultipartFile image) {
-        Member member = memberRepository.findById(memberId)
+    public Goal createGoal(Long userId, CreateGoalRequestDto dto, MultipartFile image) { // image 파라미터 추가
+        Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
         String imageUrl = null;
 
-        // 🔥 이미지 있으면 업로드
+        // 1. 이미지가 존재하면 S3에 업로드하고 URL 받기
         if (image != null && !image.isEmpty()) {
             try {
                 imageUrl = s3UploadService.saveFile(image);
             } catch (IOException e) {
-                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
+                throw new RuntimeException("이미지 업로드에 실패했습니다.", e);
             }
         }
 
+        // 2. Goal 엔티티 생성 (imageUrl 저장)
         Goal newGoal = Goal.builder()
                 .title(dto.getTitle())
+                .imageUrl(imageUrl) // 업로드된 URL 저장
                 .targetAmount(dto.getTargetAmount())
                 .deadline(dto.getDeadline())
-                .imageUrl(imageUrl) // 🔥 업로드된 URL 저장
                 .member(member)
                 .build();
 
