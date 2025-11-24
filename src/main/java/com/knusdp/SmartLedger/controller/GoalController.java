@@ -12,7 +12,9 @@ import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
 
+
 import io.swagger.v3.oas.annotations.Parameter;
+elop
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -40,9 +42,9 @@ public class GoalController {
     private final GoalService goalService;
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
-
     @Operation(summary = "목표 생성 (이미지 업로드 포함)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+
     public ResponseEntity<String> createGoal(
             @Valid
             @RequestPart("data")
