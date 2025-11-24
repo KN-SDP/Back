@@ -18,5 +18,3 @@ public class GoalRequestSchema {
     private MultipartFile image;
 }
 
-
-

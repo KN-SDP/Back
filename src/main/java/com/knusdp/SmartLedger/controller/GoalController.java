@@ -12,6 +12,8 @@ import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
 
+
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -39,29 +41,16 @@ public class GoalController {
     private final GoalService goalService;
     private final GoalRepository goalRepository;
     private final MemberRepository memberRepository;
-    @io.swagger.v3.oas.annotations.parameters.RequestBody(
-            content = @Content(
-                    mediaType = "multipart/form-data",
-                    schema = @Schema(implementation = GoalRequestSchema.class)
-            )
-    )
-
-
-    @Operation(
-            summary = "목표 생성",
-            requestBody = @RequestBody(
-                    required = true,
-                    content = @Content(
-                            mediaType = "multipart/form-data",
-                            schema = @Schema(implementation = GoalRequestSchema.class)
-                    )
-            )
-    )
+    @Operation(summary = "목표 생성 (이미지 업로드 포함)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 
     public ResponseEntity<String> createGoal(
-            @Valid @RequestPart("data") CreateGoalRequestDto dto,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @Valid
+            @RequestPart("data")
+            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)) // ★ 핵심 설정
+            CreateGoalRequestDto dto,
+            @RequestPart(value = "image", required = false)
+            MultipartFile image
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
