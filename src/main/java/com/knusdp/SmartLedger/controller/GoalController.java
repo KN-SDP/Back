@@ -39,9 +39,6 @@ public class GoalController {
 
         return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
     }
-
-
-
     // ... (나머지 조회, 수정, 삭제 메서드는 기존과 동일하게 유지) ...
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {
