@@ -30,9 +30,7 @@ public class GoalController {
     @Operation(summary = "목표 생성 (개별 폼 필드 전송)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-
-            @Valid @ModelAttribute CreateGoalRequestDto dto,
-            @RequestPart("data") String data,
+            @ModelAttribute CreateGoalRequestDto dto,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
