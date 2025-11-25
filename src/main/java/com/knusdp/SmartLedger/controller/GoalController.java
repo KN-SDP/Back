@@ -36,7 +36,13 @@ public class GoalController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
             // 변경점: DTO가 아니라 String으로 받음 (Content-Type 신경 안 써도 됨)
-            @Parameter(schema = @Schema(implementation = CreateGoalRequestDto.class, type = "string", format = "binary"))
+            @Parameter(
+                    description = "JSON 데이터를 문자열로 입력하세요",
+                    schema = @Schema(
+                            type = "string", // 텍스트 입력창으로 설정
+                            example = "{ \"title\": \"여행가기\", \"targetAmount\": 1000000, \"deadline\": \"2025-12-31\" }" // 미리 채워질 예시값
+                    )
+            )
             @RequestPart("data") String data,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws JsonProcessingException {
