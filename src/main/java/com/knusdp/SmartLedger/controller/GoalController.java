@@ -30,16 +30,9 @@ public class GoalController {
     @Operation(summary = "목표 생성 (개별 폼 필드 전송)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-
-            // ★ 핵심 변경: @ModelAttribute 사용
-            // 폼 데이터(title, targetAmount 등)를 자동으로 DTO에 매핑해줍니다.
-            @Valid @ModelAttribute CreateGoalRequestDto dto,
-
+            @ModelAttribute CreateGoalRequestDto dto,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) {
-
-        // JSON 파싱 로직(objectMapper.read...) 삭제됨! 바로 dto 쓰면 됩니다.
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
