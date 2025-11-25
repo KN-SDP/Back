@@ -31,13 +31,15 @@ public class GoalService {
     private final S3UploadService s3UploadService;
 
     @Transactional
-    public Goal createGoal(Long userId, CreateGoalRequestDto dto, MultipartFile image) { // image 파라미터 추가
+    public Goal createGoal(Long userId, CreateGoalRequestDto dto, MultipartFile image) {
+
+        // 1. 사용자 조회
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
         String imageUrl = null;
 
-        // 1. 이미지가 존재하면 S3에 업로드하고 URL 받기
+        // 2. 이미지가 있는 경우에만 업로드
         if (image != null && !image.isEmpty()) {
             try {
                 imageUrl = s3UploadService.saveFile(image);
@@ -46,17 +48,19 @@ public class GoalService {
             }
         }
 
-        // 2. Goal 엔티티 생성 (imageUrl 저장)
+        // 3. Goal Entity 생성
         Goal newGoal = Goal.builder()
                 .title(dto.getTitle())
-                .imageUrl(imageUrl) // 업로드된 URL 저장
                 .targetAmount(dto.getTargetAmount())
                 .deadline(dto.getDeadline())
+                .imageUrl(imageUrl)  // 이미지 없으면 그냥 null 저장됨
                 .member(member)
                 .build();
 
+        // 4. 저장 후 반환
         return goalRepository.save(newGoal);
     }
+
 
     public List<GoalResponseDto> findGoalsByMemberId(Long memberId) {
         // 1. 리포지토리 호출하여 특정 사용자의 목표 목록 조회
