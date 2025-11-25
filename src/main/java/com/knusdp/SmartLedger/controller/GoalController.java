@@ -29,18 +29,15 @@ public class GoalController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-            @ModelAttribute CreateGoalRequestDto dto,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @ModelAttribute @Valid CreateGoalRequestDto dto,               // 텍스트 필드 자동 매핑 + 자동 validation
+            @RequestPart(value = "image", required = false) MultipartFile image  // 파일 따로 받기
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
         goalService.createGoal(userId, dto, image);
         return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
-
     }
-
-
     // ... (나머지 조회, 수정, 삭제 메서드는 기존과 동일하게 유지) ...
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {
