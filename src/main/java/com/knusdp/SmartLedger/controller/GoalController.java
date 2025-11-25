@@ -1,16 +1,12 @@
 package com.knusdp.SmartLedger.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper; // 추가됨
 import com.knusdp.SmartLedger.dto.CreateGoalRequestDto;
 import com.knusdp.SmartLedger.dto.GoalResponseDto;
 import com.knusdp.SmartLedger.dto.UpdateGoalRequestDto;
 import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -30,57 +26,49 @@ import java.util.Map;
 public class GoalController {
 
     private final GoalService goalService;
-    private final ObjectMapper objectMapper; // JSON 변환기 주입
 
-    @Operation(summary = "목표 생성 (이미지 업로드 포함)")
+    @Operation(summary = "목표 생성 (개별 폼 필드 전송)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-            // 변경점: DTO가 아니라 String으로 받음 (Content-Type 신경 안 써도 됨)
-            @Parameter(
-                    description = "JSON 데이터를 문자열로 입력하세요",
-                    schema = @Schema(
-                            type = "string", // 텍스트 입력창으로 설정
-                            example = "{ \"title\": \"여행가기\", \"targetAmount\": 1000000, \"deadline\": \"2025-12-31\" }" // 미리 채워질 예시값
-                    )
-            )
-            @RequestPart("data") String data,
-            @RequestPart(value = "image", required = false) MultipartFile image
-    ) throws JsonProcessingException {
 
-        // 1. 여기서 수동으로 String -> DTO 변환 (이러면 에러 안 남)
-        CreateGoalRequestDto dto = objectMapper.readValue(data, CreateGoalRequestDto.class);
+            // ★ 핵심 변경: @ModelAttribute 사용
+            // 폼 데이터(title, targetAmount 등)를 자동으로 DTO에 매핑해줍니다.
+            @Valid @ModelAttribute CreateGoalRequestDto dto,
+
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+
+        // JSON 파싱 로직(objectMapper.read...) 삭제됨! 바로 dto 쓰면 됩니다.
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
         goalService.createGoal(userId, dto, image);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("목표가 생성되었습니다");
     }
 
-    // ... 아래 getGoals, updateGoal 등 다른 메서드는 그대로 두세요 ...
+    // ... (나머지 조회, 수정, 삭제 메서드는 기존과 동일하게 유지) ...
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-        List<GoalResponseDto> response = goalService.findGoalsByMemberId(userId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(goalService.findGoalsByMemberId(userId));
     }
 
-    // (나머지 코드 생략 - 기존과 동일)
     @GetMapping("/{id}")
     public ResponseEntity<GoalResponseDto> getGoal(@PathVariable("id") Long goalId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-        GoalResponseDto response = goalService.findGoalById(userId, goalId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(goalService.findGoalById(userId, goalId));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<GoalResponseDto> updateGoal(@PathVariable("id") Long goalId, @RequestBody UpdateGoalRequestDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-        GoalResponseDto updatedGoal = goalService.updateGoal(userId, goalId, dto);
-        return ResponseEntity.ok(updatedGoal);
+        return ResponseEntity.ok(goalService.updateGoal(userId, goalId, dto));
     }
 
     @DeleteMapping("/{id}")
