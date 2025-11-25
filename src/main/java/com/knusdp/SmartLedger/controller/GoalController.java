@@ -43,6 +43,7 @@ public class GoalController {
                             example = "{ \"title\": \"여행가기\", \"targetAmount\": 1000000, \"deadline\": \"2025-12-31\" }" // 미리 채워질 예시값
                     )
             )
+
             @RequestPart("data") String data,
             @RequestPart(value = "image", required = false) MultipartFile image
     ) throws JsonProcessingException {
