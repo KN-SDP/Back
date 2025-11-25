@@ -32,6 +32,9 @@ public class CreateGoalRequestDto {
     @NotNull
     @FutureOrPresent
     @DateTimeFormat(pattern = "yyyy-MM-dd")
+
     private LocalDate deadline;
+
+    private MultipartFile image;
 }
 
