@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -27,9 +28,10 @@ public class CreateGoalRequestDto {
     @DecimalMin("1")
     private BigDecimal targetAmount;
 
-    @Schema(type = "string", format = "date", example = "2025-11-25")
+    @Schema(type = "string", example = "2025-11-25")
     @NotNull
     @FutureOrPresent
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     private LocalDate deadline;
 }
 
