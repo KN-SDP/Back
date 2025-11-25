@@ -30,13 +30,12 @@ public class GoalController {
     @Operation(summary = "목표 생성 (개별 폼 필드 전송)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-            @ModelAttribute CreateGoalRequestDto dto,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @ModelAttribute CreateGoalRequestDto dto
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-        goalService.createGoal(userId, dto, image);
+        goalService.createGoal(userId, dto, dto.getImage());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("목표가 생성되었습니다");
