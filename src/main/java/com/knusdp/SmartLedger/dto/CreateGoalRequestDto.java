@@ -31,5 +31,7 @@ public class CreateGoalRequestDto {
     @NotNull
     @FutureOrPresent
     private LocalDate deadline;
+
+    private MultipartFile image;
 }
 
