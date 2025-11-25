@@ -37,6 +37,7 @@ public class GoalController {
 
         goalService.createGoal(userId, dto, image);
         return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
+
     }
 
 
