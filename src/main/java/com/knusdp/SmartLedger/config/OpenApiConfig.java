@@ -11,13 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class OpenApiConfig {
 
-    public OpenApiConfig(MappingJackson2HttpMessageConverter converter) {
-        // application/octet-stream 미디어 타입 지원 추가
-        var supportedMediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
-        supportedMediaTypes.add(new MediaType("application", "octet-stream"));
-        converter.setSupportedMediaTypes(supportedMediaTypes);
-    }
-
     @Bean
     public OpenAPI openAPI() {
         final String securitySchemeName = "bearerAuth";
