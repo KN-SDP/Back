@@ -35,19 +35,11 @@ public class GoalController {
     @Operation(summary = "목표 생성 (이미지 업로드 포함)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-            @RequestPart("title") String title,
-            @RequestPart("targetAmount") String targetAmount,
-            @RequestPart("deadline") String deadline,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @ModelAttribute CreateGoalRequestDto createGoalRequestDto
     ) {
-        // DTO 수동 생성
-        CreateGoalRequestDto dto = new CreateGoalRequestDto();
-        dto.setTitle(title);
-        dto.setTargetAmount(new BigDecimal(targetAmount));
-        dto.setDeadline(LocalDate.parse(deadline));
 
         // Validation 수동 실행
-        Set<ConstraintViolation<CreateGoalRequestDto>> violations = validator.validate(dto);
+        Set<ConstraintViolation<CreateGoalRequestDto>> violations = validator.validate(createGoalRequestDto);
         if (!violations.isEmpty()) {
             String errorMessage = violations.iterator().next().getMessage();
             throw new IllegalArgumentException(errorMessage);
@@ -56,7 +48,7 @@ public class GoalController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-        goalService.createGoal(userId, dto, image);
+        goalService.createGoal(userId, createGoalRequestDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
     }

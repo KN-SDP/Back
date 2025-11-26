@@ -31,7 +31,7 @@ public class GoalService {
     private final S3UploadService s3UploadService;
 
     @Transactional
-    public Goal createGoal(Long userId, CreateGoalRequestDto dto, MultipartFile image) {
+    public Goal createGoal(Long userId, CreateGoalRequestDto dto) {
 
         // 1. 사용자 조회
         Member member = memberRepository.findById(userId)
@@ -40,9 +40,9 @@ public class GoalService {
         String imageUrl = null;
 
         // 2. 이미지가 있는 경우에만 업로드
-        if (image != null && !image.isEmpty()) {
+        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
             try {
-                imageUrl = s3UploadService.saveFile(image);
+                imageUrl = s3UploadService.saveFile(dto.getImage());
             } catch (IOException e) {
                 throw new RuntimeException("이미지 업로드에 실패했습니다.", e);
             }
