@@ -7,37 +7,26 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-
-import java.util.ArrayList;
 
 @Configuration
 public class OpenApiConfig {
 
-    public OpenApiConfig(MappingJackson2HttpMessageConverter converter) {
-        // application/octet-stream 미디어 타입 지원 추가
-        var supportedMediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
-        supportedMediaTypes.add(new MediaType("application", "octet-stream"));
-        converter.setSupportedMediaTypes(supportedMediaTypes);
-    }
-
     @Bean
-    public OpenAPI openAPI() {
-        final String securitySchemeName = "bearerAuth";
+    public OpenAPI openAPI() { // 메소드 이름은 openAPI() 그대로 사용해도 됩니다.
+        final String securitySchemeName = "bearerAuth"; // 보안 스키마의 이름
 
         return new OpenAPI()
+                // 기존 API 정보 설정
                 .info(new Info()
                         .title("SmartLedger API")
-                        .version("1.0.0")
+                        .version("1.0.0") // 기존 버전 유지 또는 v1으로 변경
                         .description("SmartLedger API 문서"))
+                // 'bearerAuth'라는 이름의 보안 스키마 정의
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName, new SecurityScheme()
-                                .name(securitySchemeName)
-                                .type(SecurityScheme.Type.HTTP)
-                                .scheme("bearer")
-                                .bearerFormat("JWT")))
-                .addSecurityItem(new SecurityRequirement()
-                        .addList(securitySchemeName));
+                                .name(securitySchemeName)        // 스키마 이름
+                                .type(SecurityScheme.Type.HTTP) // 타입: HTTP
+                                .scheme("bearer")               // 스키마: Bearer
+                                .bearerFormat("JWT")));          // 형식: JWT
     }
 }
