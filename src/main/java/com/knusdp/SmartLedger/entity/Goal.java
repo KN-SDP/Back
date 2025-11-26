@@ -24,7 +24,7 @@ public class Goal {
     @Column(nullable = false, length = 30)
     private String title; // 목표 제목
 
-    @Column // 이미지 URL은 선택 사항
+    @Column(columnDefinition = "TEXT") // 이미지 Url 선택사항
     private String imageUrl;
 
     @Column(nullable = false, precision = 15, scale = 0) // 목표 금액은 소수점 없다고 가정
