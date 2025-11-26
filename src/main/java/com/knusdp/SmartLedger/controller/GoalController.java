@@ -6,8 +6,7 @@ import com.knusdp.SmartLedger.dto.UpdateGoalRequestDto;
 import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.ConstraintViolation;
-import jakarta.validation.Validator;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,11 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/goals")
@@ -30,29 +26,12 @@ import java.util.Set;
 public class GoalController {
 
     private final GoalService goalService;
-    private final Validator validator;
 
-    @Operation(summary = "목표 생성 (이미지 업로드 포함)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> createGoal(
-            @RequestPart("title") String title,
-            @RequestPart("targetAmount") String targetAmount,
-            @RequestPart("deadline") String deadline,
-            @RequestPart(value = "image", required = false) MultipartFile image
+            @ModelAttribute @Valid CreateGoalRequestDto dto,               // 텍스트 필드 자동 매핑 + 자동 validation
+            @RequestPart(value = "image", required = false) MultipartFile image  // 파일 따로 받기
     ) {
-        // DTO 수동 생성
-        CreateGoalRequestDto dto = new CreateGoalRequestDto();
-        dto.setTitle(title);
-        dto.setTargetAmount(new BigDecimal(targetAmount));
-        dto.setDeadline(LocalDate.parse(deadline));
-
-        // Validation 수동 실행
-        Set<ConstraintViolation<CreateGoalRequestDto>> violations = validator.validate(dto);
-        if (!violations.isEmpty()) {
-            String errorMessage = violations.iterator().next().getMessage();
-            throw new IllegalArgumentException(errorMessage);
-        }
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
@@ -61,28 +40,28 @@ public class GoalController {
         return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
     }
 
+
+
+    // ... (나머지 조회, 수정, 삭제 메서드는 기존과 동일하게 유지) ...
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-        List<GoalResponseDto> response = goalService.findGoalsByMemberId(userId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(goalService.findGoalsByMemberId(userId));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GoalResponseDto> getGoal(@PathVariable("id") Long goalId) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-        GoalResponseDto response = goalService.findGoalById(userId, goalId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(goalService.findGoalById(userId, goalId));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<GoalResponseDto> updateGoal(@PathVariable("id") Long goalId, @RequestBody UpdateGoalRequestDto dto) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
-        GoalResponseDto updatedGoal = goalService.updateGoal(userId, goalId, dto);
-        return ResponseEntity.ok(updatedGoal);
+        return ResponseEntity.ok(goalService.updateGoal(userId, goalId, dto));
     }
 
     @DeleteMapping("/{id}")
