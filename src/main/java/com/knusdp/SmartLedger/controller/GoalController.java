@@ -7,6 +7,7 @@ import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Valid;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -34,24 +35,21 @@ public class GoalController {
 
     @Operation(summary = "목표 생성 (이미지 업로드 포함)")
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> createGoal(
-            @ModelAttribute CreateGoalRequestDto createGoalRequestDto
+    public ResponseEntity<Map<String, Object>> createGoal(
+            @ModelAttribute @Valid CreateGoalRequestDto createGoalRequestDto
     ) {
-
-        // Validation 수동 실행
-        Set<ConstraintViolation<CreateGoalRequestDto>> violations = validator.validate(createGoalRequestDto);
-        if (!violations.isEmpty()) {
-            String errorMessage = violations.iterator().next().getMessage();
-            throw new IllegalArgumentException(errorMessage);
-        }
-
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-        goalService.createGoal(userId, createGoalRequestDto);
+        Long goalId = goalService.createGoal(userId, createGoalRequestDto);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("목표가 생성되었습니다");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of(
+                        "goalId", goalId,
+                        "message", "목표가 생성되었습니다."
+                ));
     }
+
 
     @GetMapping
     public ResponseEntity<List<GoalResponseDto>> getGoals() {

@@ -12,6 +12,8 @@ import com.knusdp.SmartLedger.repository.AccountBookRepository;
 import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.GoalRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,27 +21,35 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
 public class GoalService {
-    private final AccountBookRepository accountBookRepository;
     private final MemberRepository memberRepository;
-    private final CategoryRepository categoryRepository;
     private final GoalRepository goalRepository;
     private final S3UploadService s3UploadService;
+    private final Validator validator;
 
     @Transactional
-    public Goal createGoal(Long userId, CreateGoalRequestDto dto) {
+    public Long createGoal(Long userId, CreateGoalRequestDto dto) {
 
-        // 1. 사용자 조회
+        // 1. 사용자 검증 — 인증 실패 처리 포함
         Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("로그인이 필요합니다."));
 
+        // 2. DTO 값 수동 검증 (업로드 파일 포함 검증)
+        Set<ConstraintViolation<CreateGoalRequestDto>> violations =
+                validator.validate(dto);
+
+        if (!violations.isEmpty()) {
+            String errorMessage = violations.iterator().next().getMessage();
+            throw new IllegalArgumentException(errorMessage);
+        }
+
+        // 3. 이미지 업로드(있을 때만)
         String imageUrl = null;
-
-        // 2. 이미지가 있는 경우에만 업로드
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
             try {
                 imageUrl = s3UploadService.saveFile(dto.getImage());
@@ -48,18 +58,20 @@ public class GoalService {
             }
         }
 
-        // 3. Goal Entity 생성
-        Goal newGoal = Goal.builder()
+        // 4. 엔티티 생성
+        Goal goal = Goal.builder()
                 .title(dto.getTitle())
                 .targetAmount(dto.getTargetAmount())
                 .deadline(dto.getDeadline())
-                .imageUrl(imageUrl)  // 이미지 없으면 그냥 null 저장됨
+                .imageUrl(imageUrl)
                 .member(member)
                 .build();
 
-        // 4. 저장 후 반환
-        return goalRepository.save(newGoal);
+        goalRepository.save(goal);
+
+        return goal.getGoalId();
     }
+
 
 
     public List<GoalResponseDto> findGoalsByMemberId(Long memberId) {

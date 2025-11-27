@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -35,18 +36,30 @@ public class MemberService {
     private final JwtUtil jwtUtil;
 
     public Member saveUserInfo(SaveUserLoginInfoDto dto) {
+
         if (!dto.getUserPassword().equals(dto.getCheckedPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new PasswordMismatchException("비밀번호가 일치하지 않습니다.");
         }
+
+        if (!dto.getUserEmail().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new EmailValidationError("올바른 이메일 형식이 아닙니다.");
+        }
+
         if (memberRepository.findByEmail(dto.getUserEmail()).isPresent()) {
             throw new EmailDuplicateException("이미 등록된 이메일입니다.");
         }
+
         if (memberRepository.findByNickname(dto.getUserNickname()).isPresent()) {
             throw new NickNameDuplicateException("이미 사용중인 닉네임입니다.");
         }
-        if (!dto.getUserEmail().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-            throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다.");
+
+        LocalDate birth;
+        try {
+            birth = LocalDate.parse(dto.getUserBirth());
+        } catch (DateTimeParseException e) {
+            throw new InvalidDateFormatException("생년월일 형식은 YYYY-MM-DD이어야 합니다.");
         }
+
         String encryptedPhoneNumber = cryptoUtil.encrypt(dto.getUserPhoneNumber());
 
         Member member = Member.builder()
@@ -54,17 +67,13 @@ public class MemberService {
                 .password(passwordEncoder.encode(dto.getUserPassword()))
                 .email(dto.getUserEmail())
                 .phoneNumber(encryptedPhoneNumber)
-                .birth(LocalDate.parse(dto.getUserBirth()))
+                .birth(birth)
                 .loginType(LoginType.LOCAL)
                 .nickname(dto.getUserNickname())
                 .build();
 
         return memberRepository.save(member);
     }
-
-
-
-
 
     public String issueResetToken(String email, String username, String birth, String phone) {
         LocalDate birthDate = LocalDate.parse(birth);
