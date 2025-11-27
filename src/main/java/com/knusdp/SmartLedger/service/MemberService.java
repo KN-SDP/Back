@@ -116,7 +116,8 @@ public class MemberService {
         return true;
     }
 
-    public void updateNickname(Long userId, String newNickname) {
+    @Transactional
+    public String updateNickname(Long userId, String newNickname) {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
 
@@ -128,7 +129,9 @@ public class MemberService {
                 });
 
         member.setNickname(newNickname);
+        return member.getNickname(); // 변경된 닉네임 반환
     }
+
     public Member findOrCreateSocialUser(String provider, String providerId, String email, String name) {
 
         Optional<Member> memberOpt = memberRepository.findByProviderId(providerId);
