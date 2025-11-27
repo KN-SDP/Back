@@ -163,36 +163,20 @@ public class MemberService {
     }
 
     public Member findOrCreateSocialUser(String provider, String providerId, String email, String name) {
-
+        // 1. 이미 가입된 회원인지 확인 (ProviderId 또는 Email로)
         Optional<Member> memberOpt = memberRepository.findByProviderId(providerId);
-        if (memberOpt.isPresent()) {
-            return memberOpt.get(); // 이미 가입된 소셜 회원이면 반환
-        }
+        if (memberOpt.isPresent()) return memberOpt.get();
 
         Optional<Member> emailMemberOpt = memberRepository.findByEmail(email);
         if (emailMemberOpt.isPresent()) {
+            // 이미 로컬 계정이 있으면 연동 처리 후 반환
             Member existingMember = emailMemberOpt.get();
             existingMember.setProviderId(providerId);
             existingMember.setLoginType(LoginType.valueOf(provider.toUpperCase()));
             return memberRepository.save(existingMember);
         }
-
-        // --- 신규 회원 생성 로직 ---
-        Member newMember = Member.builder()
-                .email(email)
-                .username(name)
-                .loginType(LoginType.valueOf(provider.toUpperCase()))
-                .providerId(providerId)
-
-                // --- DB 필수값을 채우기 위한 임시 정보 (Dummy Data) ---
-                .nickname(provider + "_" + providerId.substring(0, 6)) // UNIQUE 임시 닉네임
-                .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 임시 비밀번호
-                .birth(LocalDate.of(1900, 1, 1)) // ★★★ "신규 유저" 꼬리표가 될 임시 생년월일
-                // phoneNumber는 UNIQUE이므로, 고유값인 providerId를 암호화하여 임시 저장
-                .phoneNumber(cryptoUtil.encrypt(providerId))
-                .build();
-
-        return memberRepository.save(newMember);
+        // 2. 신규 회원이면 DB에 저장하지 않고 null 반환
+        return null;
     }
     public void updateProfile(Long userId, UpdateProfileRequestDto dto) {
         // 1. 닉네임 중복 검사 (본인 제외)
