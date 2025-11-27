@@ -239,6 +239,31 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    //비번 토큰 다르면
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidToken(InvalidTokenException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponseDto(400, "INVALID_TOKEN", ex.getMessage())
+        );
+    }
+    //비번 재설정 다르면
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ErrorResponseDto> handlePasswordMismatch(PasswordMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponseDto(400, "PASSWORD_MISMATCH", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidCurrentPasswordException(InvalidPasswordException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                400,
+                "INVALID_CURRENT_PASSWORD",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
 
 
 

@@ -103,4 +103,39 @@ public class JwtUtil {
                 .getBody()
                 .get("email", String.class);
     }
+
+    // 비밀번호 재설정을 위한 JWT
+    public String generateResetToken(Long userId, String email) {
+
+        Claims claims = Jwts.claims().setSubject(String.valueOf(userId));
+        claims.put("email", email);
+        claims.put("type", "RESET_PASSWORD"); // 토큰 종류 구분
+
+        long expiration = 1000 * 60 * 10; // 10분 만료
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .compact();
+    }
+    // 비밀번호재설정 JWT 검증
+    public boolean validateResetToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(SECRET_KEY)
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            if (!"RESET_PASSWORD".equals(claims.get("type", String.class))) {
+                return false;
+            }
+
+            return !claims.getExpiration().before(new Date());
+        } catch (JwtException e) {
+            return false;
+        }
+    }
 }

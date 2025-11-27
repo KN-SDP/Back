@@ -38,13 +38,6 @@ public class Member {
     @Column(nullable = false)
     private LocalDate birth; // 생년월일
 
-    //비밀번호 재설정을 위한 토큰
-    @Column(length = 64)
-    private String resetToken;
-
-    //비밀번호 재설정을 위한 토큰 만료시간
-    private LocalDateTime resetTokenExpiry;
-
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -82,5 +75,7 @@ public class Member {
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AssetHistory> assetHistory = new ArrayList<>();
 
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PasswordHistory> passwordHistory = new ArrayList<>();
 
 }
