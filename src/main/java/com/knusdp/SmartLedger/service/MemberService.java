@@ -187,16 +187,12 @@ public class MemberService {
                 // --- DB 필수값을 채우기 위한 임시 정보 (Dummy Data) ---
                 .nickname(provider + "_" + providerId.substring(0, 6)) // UNIQUE 임시 닉네임
                 .password(passwordEncoder.encode(UUID.randomUUID().toString())) // 임시 비밀번호
-
                 .birth(LocalDate.of(1900, 1, 1)) // ★★★ "신규 유저" 꼬리표가 될 임시 생년월일
-
                 // phoneNumber는 UNIQUE이므로, 고유값인 providerId를 암호화하여 임시 저장
                 .phoneNumber(cryptoUtil.encrypt(providerId))
-
                 .build();
 
         return memberRepository.save(newMember);
-        // (참고: 기본 카테고리 생성 로직은 DB에 수동 추가하셨으므로 여기서 호출하지 않습니다.)
     }
     public void updateProfile(Long userId, UpdateProfileRequestDto dto) {
         // 1. 닉네임 중복 검사 (본인 제외)
@@ -213,7 +209,7 @@ public class MemberService {
                 .ifPresent(member -> {
                     if (!member.getId().equals(userId)) {
                         String provider = member.getLoginType().toString(); // 예: "GOOGLE", "LOCAL"
-                        throw new RuntimeException(
+                        throw new AccountDuplicatedException(
                                 String.format("이미 %s 계정으로 가입된 전화번호입니다. 해당 계정으로 로그인해주세요.", provider)
                         );
                     }

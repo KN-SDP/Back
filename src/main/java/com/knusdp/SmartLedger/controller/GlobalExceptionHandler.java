@@ -273,4 +273,13 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    @ExceptionHandler(AccountDuplicatedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAccountDuplicatedException(AccountDuplicatedException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.CONFLICT.value(),
+                "DUPLICATE_ACCOUNT",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
 }
