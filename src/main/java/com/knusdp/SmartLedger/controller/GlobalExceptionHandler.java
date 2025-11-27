@@ -2,7 +2,6 @@ package com.knusdp.SmartLedger.controller;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.knusdp.SmartLedger.dto.ErrorResponseDto;
-import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.*;
 import com.knusdp.SmartLedger.exception.asset.AssetNotFoundException;
 import com.knusdp.SmartLedger.exception.asset.InvalidDateRangeException;
@@ -14,7 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -26,12 +24,14 @@ import java.util.Map;
 
 public class GlobalExceptionHandler {
 
-
-    //
     @ExceptionHandler(InvalidFormatException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidFormatException(InvalidFormatException ex) {
-
-        throw new InvalidAmountException("금액은 숫자 형식이어야 합니다.");
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "INVALID_FORMAT",
+                "입력 형식이 잘못되었습니다."
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
 
@@ -45,6 +45,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
     @ExceptionHandler(NickNameDuplicateException.class)
     public ResponseEntity<ErrorResponseDto> handleNickNameDuplicateException(NickNameDuplicateException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -54,6 +55,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
     @ExceptionHandler(EmailValidationError.class)
     public ResponseEntity<ErrorResponseDto> handleEmailValidationError(EmailValidationError ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -61,8 +63,9 @@ public class GlobalExceptionHandler {
                 "ValidationError",
                 ex.getMessage()
         );
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleUserNotFoundException(UserNotFoundException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -72,6 +75,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
     @ExceptionHandler(LoginFailedException.class)
     public ResponseEntity<ErrorResponseDto> handleLoginFailedException(LoginFailedException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -81,15 +85,17 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
                 409, // 409
                 "DATA_INTEGRITY_VIOLATION",
-                    "이미 사용 중인 정보가 포함되어 있습니다. (예: 이름, 이메일, 닉네임 등)"
+                "이미 사용 중인 정보가 포함되어 있습니다. (예: 이름, 이메일, 닉네임 등)"
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
     @ExceptionHandler(MissingRequiredFieldException.class)
     public ResponseEntity<ErrorResponseDto> handleMissingRequiredFieldException(MissingRequiredFieldException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -99,6 +105,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
     @ExceptionHandler(InvalidAmountException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidAmountException(InvalidAmountException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -108,6 +115,7 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponseDto> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
         String errorCode = "INVALID_PARAMETER_FORMAT";
@@ -138,24 +146,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
-        log.error("Unexpected error occurred: ", ex);
-        ErrorResponseDto error = new ErrorResponseDto(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "INTERNAL_SERVER_ERROR",
-                ex.getMessage()
-        );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponseDto> handleIllegalArgumentException(IllegalArgumentException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
                 "INVALID_QUERY_PARAMETER",
-                ex.getMessage() // 서비스에서 던진 메시지를 그대로 사용
+                ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
@@ -169,34 +165,36 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
     @ExceptionHandler(GoalNotFoundException.class)
     public ResponseEntity<ErrorResponseDto> handleGoalNotFoundException(GoalNotFoundException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
                 HttpStatus.NOT_FOUND.value(),
-                "GOAL_NOT_FOUND", // 에러 코드 변경
+                "GOAL_NOT_FOUND",
                 ex.getMessage()
         );
         return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
+
     @ExceptionHandler(AssetNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleAssetNotFound(AssetNotFoundException e) {
-        return ResponseEntity.status(404).body(Map.of(
-                "status_code", 404,
-                "error_code", "ASSET_NOT_FOUND",
-                "message", e.getMessage()
-        ));
+    public ResponseEntity<ErrorResponseDto> handleAssetNotFound(AssetNotFoundException e) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                404,
+                "ASSET_NOT_FOUND",
+                e.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(InvalidDateRangeException.class)
-    public ResponseEntity<Map<String, Object>> handleDateRange(InvalidDateRangeException e) {
-        return ResponseEntity.status(400).body(Map.of(
-                "status_code", 400,
-                "error_code", "INVALID_DATE_RANGE",
-                "message", e.getMessage()
-        ));
+    public ResponseEntity<ErrorResponseDto> handleDateRange(InvalidDateRangeException e) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                400,
+                "INVALID_DATE_RANGE",
+                e.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
-
-
 
     //Budget 예외
     @ExceptionHandler(CategoryNotFoundException.class)
@@ -246,6 +244,7 @@ public class GlobalExceptionHandler {
                 new ErrorResponseDto(400, "INVALID_TOKEN", ex.getMessage())
         );
     }
+
     //비번 재설정 다르면
     @ExceptionHandler(PasswordMismatchException.class)
     public ResponseEntity<ErrorResponseDto> handlePasswordMismatch(PasswordMismatchException ex) {
@@ -264,9 +263,14 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
-
-
-
-
-
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponseDto> handleException(Exception ex) {
+        log.error("Unexpected error occurred: ", ex);
+        ErrorResponseDto error = new ErrorResponseDto(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "INTERNAL_SERVER_ERROR",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }

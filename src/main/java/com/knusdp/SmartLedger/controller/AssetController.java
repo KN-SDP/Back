@@ -45,17 +45,8 @@ public class AssetController {
             @Valid @RequestBody CreateInvestmentAssetRequestDto dto
     ) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(Map.of(
-                            "status_code", 401,
-                            "error_code", "UNAUTHORIZED",
-                            "message", "인증이 필요합니다."
-                    ));
-        }
-
         Long userId = Long.parseLong(authentication.getName());
+
         Long id = assetService.createInvestmentAsset(userId, dto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -64,6 +55,7 @@ public class AssetController {
                         "message", "자산이 등록되었습니다."
                 ));
     }
+
 
     //자산 검색
     @GetMapping

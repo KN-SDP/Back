@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -28,36 +29,33 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDto loginRequestDto) {
         LoginResponseDto response = authService.login(loginRequestDto.getEmail(), loginRequestDto.getPassword());
-        if (response != null) return ResponseEntity.ok(response);
-        return ResponseEntity.status(401).body("로그인 실패");
+
+        return ResponseEntity.ok(response);
     }
 
     /* 회원가입 */
     @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@RequestBody SaveUserLoginInfoDto dto) {
-        try {
-            memberService.saveUserInfo(dto);
-            return ResponseEntity.ok("가입이 완료되었습니다.");
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        memberService.saveUserInfo(dto);
+        return ResponseEntity.ok("가입이 완료되었습니다.");
     }
 
     /* 아이디 찾기 */
     @PostMapping("/recover-id")
-    public ResponseEntity<FindIdResponseDto> findId(@RequestBody FindIdRequestDto request) {
+    public ResponseEntity<?> findId(@RequestBody FindIdRequestDto request) {
         String foundEmail = findInFoService.findId(
                 request.getName(),
                 request.getPhoneNum(),
                 request.getBirth()
         );
-        FindIdResponseDto responseDto = new FindIdResponseDto(
-                HttpStatus.OK.value(),
-                "가입된 이메일을 확인했습니다.",
-                foundEmail
+        return ResponseEntity.ok(
+                Map.of(
+                        "message", "가입된 이메일을 확인했습니다.",
+                        "email", foundEmail
+                )
         );
-        return ResponseEntity.ok(responseDto);
     }
+
 
     //로그인 중 비번 변경
     @PatchMapping("/password")
@@ -129,7 +127,7 @@ public class AuthController {
     // 추가정보입력
     @PutMapping("/profile")
     @SecurityRequirement(name = "bearerAuth") // Swagger UI용
-    public ResponseEntity<String> updateProfile(@Valid @RequestBody UpdateProfileRequestDto dto) {
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileRequestDto dto) {
         // 1. JWT 토큰에서 사용자 ID 추출
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
@@ -138,6 +136,8 @@ public class AuthController {
         memberService.updateProfile(userId, dto);
 
         // 3. 성공 응답
-        return ResponseEntity.ok("프로필 정보가 성공적으로 업데이트되었습니다.");
+        return ResponseEntity.ok(Map.of(
+                "message", "프로필 정보가 성공적으로 업데이트되었습니다."
+        ));
     }
 }

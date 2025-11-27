@@ -35,6 +35,10 @@ public class AuthService {
         }
         String token = jwtUtil.generateToken(member);
 
-        return new LoginResponseDto(token);
+        if (token == null)
+        {
+            throw new LoginFailedException("로그인 실패");
+        }
+        else return new LoginResponseDto(token);
     }
 }

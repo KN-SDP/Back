@@ -76,12 +76,17 @@ public class AssetService {
     @Transactional
     public Long createInvestmentAsset(Long userId, CreateInvestmentAssetRequestDto dto) {
 
-        // 1) 필수 값 검증
-        if (dto.getType() == null || dto.getName() == null || dto.getQuantity() == null || dto.getAvgPrice() == null) {
+        // 1) 사용자 검증 (인증 실패/미등록 사용자 처리)
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("로그인이 필요합니다."));
+
+        // 2) 필수 값 검증
+        if (dto.getType() == null || dto.getName() == null
+                || dto.getQuantity() == null || dto.getAvgPrice() == null) {
             throw new MissingRequiredFieldException("필수 입력값이 누락되었습니다.");
         }
 
-        // 2) Type 검증
+        // 3) Type 검증
         AssetType assetType;
         try {
             assetType = AssetType.valueOf(dto.getType());
@@ -89,20 +94,13 @@ public class AssetService {
             throw new InvalidAmountException("자산유형은 COIN, STOCK 중 하나여야 합니다.");
         }
 
-        if (!(assetType == AssetType.COIN || assetType == AssetType.STOCK)) {
-            throw new InvalidAmountException("자산유형은 COIN, STOCK 중 하나여야 합니다.");
-        }
-
-        // 3) 수량/가격 검증
-        if (dto.getQuantity().compareTo(BigDecimal.ZERO) <= 0 || dto.getAvgPrice() <= 0) {
+        // 4) 수량·가격 검증
+        if (dto.getQuantity().compareTo(BigDecimal.ZERO) <= 0
+                || dto.getAvgPrice() <= 0) {
             throw new InvalidAmountException("금액은 0보다 커야 합니다.");
         }
 
-        // 4) 사용자 검증
-        Member member = memberRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
-
-        // 5) Entity 생성
+        // 5) Entity 생성 및 저장
         AssetInvestment asset = AssetInvestment.builder()
                 .assetType(assetType)
                 .assetName(dto.getName())
@@ -112,9 +110,9 @@ public class AssetService {
                 .build();
 
         assetRepository.save(asset);
-
         return asset.getAssetId();
     }
+
 
     // 자산 검색
     public AssetListResponseDto getAllAssets(Long userId) {
