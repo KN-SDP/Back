@@ -115,7 +115,6 @@ public class MemberService {
         validateAndUpdatePassword(member, newPassword, checkedPassword);
     }
 
-
     //비번변경 로직
     private void validateAndUpdatePassword(Member member, String newPassword, String checkedPassword) {
 
@@ -146,11 +145,6 @@ public class MemberService {
         member.setPassword(passwordEncoder.encode(newPassword));
         memberRepository.save(member);
     }
-
-
-
-
-
 
     @Transactional
     public String updateNickname(Long userId, String newNickname) {
@@ -218,7 +212,10 @@ public class MemberService {
         memberRepository.findByPhoneNumber(encryptedPhone)
                 .ifPresent(member -> {
                     if (!member.getId().equals(userId)) {
-                        throw new RuntimeException("이미 등록된 전화번호입니다."); // (PhoneNumberDuplicateException)
+                        String provider = member.getLoginType().toString(); // 예: "GOOGLE", "LOCAL"
+                        throw new RuntimeException(
+                                String.format("이미 %s 계정으로 가입된 전화번호입니다. 해당 계정으로 로그인해주세요.", provider)
+                        );
                     }
                 });
 
@@ -229,10 +226,7 @@ public class MemberService {
         memberToUpdate.setNickname(dto.getNickname());
         memberToUpdate.setBirth(dto.getBirth());
         memberToUpdate.setPhoneNumber(encryptedPhone);
-
-        // @Transactional에 의해 자동 저장 (Dirty Checking)
     }
-
 
     public boolean isEmailAvailable(String email) {
         return !memberRepository.existsByEmail(email);
