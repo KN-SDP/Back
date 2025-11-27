@@ -42,6 +42,21 @@ public class JwtUtil {
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
                 .compact();
     }
+    // 회원가입용 임시 토큰 (유효기간 10분)
+    public String generateRegisterToken(String email, String name, String provider, String providerId) {
+        Claims claims = Jwts.claims();
+        claims.put("email", email);
+        claims.put("name", name);
+        claims.put("provider", provider);
+        claims.put("providerId", providerId);
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10)) // 10분
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS256)
+                .compact();
+    }
 
     // JWT 검증
     public boolean validateToken(String token) {

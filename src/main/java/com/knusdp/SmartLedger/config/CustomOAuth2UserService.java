@@ -28,74 +28,68 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         log.info("➡️ [OAuth2] CustomOAuth2UserService.loadUser() 실행됨");
-        log.info("➡️ [OAuth2] provider: {}", userRequest.getClientRegistration().getRegistrationId());
 
         OAuth2User oAuth2User = super.loadUser(userRequest);
+
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
-        String provider = userRequest.getClientRegistration().getRegistrationId();
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        String userNameAttributeName = userRequest.getClientRegistration()
+                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
+
         String providerId = null;
         String email = null;
         String name = null;
 
         // ------------ GOOGLE --------------
-        if (provider.equals("google")) {
-            log.info("✔ Google OAuth 처리");
-            providerId = attributes.get("sub").toString();
-            email = attributes.get("email").toString();
-            name = attributes.get("name").toString();
+        if (registrationId.equals("google")) {
+            providerId = String.valueOf(attributes.get("sub"));
+            email = String.valueOf(attributes.get("email"));
+            name = String.valueOf(attributes.get("name"));
         }
-
         // ------------ KAKAO --------------
-        else if (provider.equals("kakao")) {
-            log.info("✔ Kakao OAuth 처리");
-            providerId = attributes.get("id").toString();
+        else if (registrationId.equals("kakao")) {
+            providerId = String.valueOf(attributes.get("id"));
             Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
-            Map<String, Object> profile = kakaoAccount != null ? (Map<String, Object>) kakaoAccount.get("profile") : null;
+            Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
 
-            if (kakaoAccount != null && kakaoAccount.get("email") != null) {
-                email = kakaoAccount.get("email").toString();
-            } else {
-                email = provider + "_" + providerId;
-            }
-
-            if (profile != null && profile.get("nickname") != null) {
-                name = profile.get("nickname").toString();
-            } else {
-                name = "kakaoUser_" + providerId.substring(0, 6);
-            }
+            email = String.valueOf(kakaoAccount.get("email"));
+            name = (profile != null) ? String.valueOf(profile.get("nickname")) : "kakao_user";
         }
-
-        // ------------ NAVER  --------------
-        else if (provider.equals("naver")) {
-            log.info("✔ Naver OAuth 처리");
-            // 네이버는 "response"라는 키 안에 실제 정보가 들어있음
+        // ------------ NAVER --------------
+        else if (registrationId.equals("naver")) {
             Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-
-            if (response == null) {
-                throw new OAuth2AuthenticationException("네이버 로그인 오류: response 정보가 없습니다.");
-            }
-
-            // 네이버의 고유 ID는 "id" 필드임
-            providerId = (String) response.get("id");
-            email = (String) response.get("email");
-            name = (String) response.get("name"); // 또는 nickname
-
-            // (선택) 네이버 전화번호나 생일 정보도 제공된다면 여기서 가져올 수 있음
-            // String mobile = (String) response.get("mobile");
-            // String birthday = (String) response.get("birthday");
+            providerId = String.valueOf(response.get("id"));
+            email = String.valueOf(response.get("email"));
+            name = String.valueOf(response.get("name"));
         }
 
-        // DB 저장 / 조회
-        Member member = memberService.findOrCreateSocialUser(provider, providerId, email, name);
-        log.info("✔ Member 저장/조회 완료: memberId={}", member.getId());
+        // 2. MemberService 호출 (신규 회원이면 null 반환, 기존 회원이면 Member 객체 반환)
+        Member member = memberService.findOrCreateSocialUser(registrationId, providerId, email, name);
 
-        attributes.put("id", member.getId());
+        // 3. 결과에 따라 속성 맵 구성 및 Principal Name 결정
+        String principalNameKey;
+
+        if (member != null) {
+            // [기존 회원] -> 로그인 처리용 정보 담기
+            log.info("✔ 기존 회원 로그인: memberId={}", member.getId());
+            attributes.put("member", member);
+            attributes.put("id", member.getId());
+            principalNameKey = "id"; // 우리 DB의 ID를 주체로 사용
+        } else {
+            log.info("✔ 신규 회원 감지: 회원가입 페이지로 정보 전달");
+            attributes.put("isNewUser", true);
+            attributes.put("email", email);
+            attributes.put("name", name);
+            attributes.put("provider", registrationId);
+            attributes.put("providerId", providerId);
+            principalNameKey = userNameAttributeName;
+        }
 
         return new DefaultOAuth2User(
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes,
-                "id"
+                principalNameKey
         );
     }
 }
