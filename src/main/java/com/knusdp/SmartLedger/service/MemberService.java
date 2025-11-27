@@ -175,8 +175,6 @@ public class MemberService {
             existingMember.setLoginType(LoginType.valueOf(provider.toUpperCase()));
             return memberRepository.save(existingMember);
         }
-
-        // 2. 신규 회원이면 DB에 저장하지 않고 null 반환
         return null;
     }
     public void updateProfile(Long userId, UpdateProfileRequestDto dto) {
