@@ -2,15 +2,14 @@ package com.knusdp.SmartLedger.service;
 
 import com.knusdp.SmartLedger.dto.SaveUserLoginInfoDto;
 import com.knusdp.SmartLedger.dto.UpdateProfileRequestDto;
-import com.knusdp.SmartLedger.entity.AccountCategory;
 import com.knusdp.SmartLedger.entity.LoginType;
 import com.knusdp.SmartLedger.entity.Member;
-import com.knusdp.SmartLedger.exception.EmailDuplicateException;
-import com.knusdp.SmartLedger.exception.NickNameDuplicateException;
-import com.knusdp.SmartLedger.exception.UserNotFoundException;
+import com.knusdp.SmartLedger.entity.PasswordHistory;
+import com.knusdp.SmartLedger.exception.*;
 import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
-
+import com.knusdp.SmartLedger.repository.PasswordHistoryRepository;
+import com.knusdp.SmartLedger.util.JwtUtil;
 import com.knusdp.SmartLedger.util.CryptoUtil;
 
 import lombok.*;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -31,8 +29,10 @@ import java.util.UUID;
 public class MemberService {
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
+    private final PasswordHistoryRepository passwordHistoryRepository;
     private final PasswordEncoder passwordEncoder;
     private final CryptoUtil cryptoUtil;
+    private final JwtUtil jwtUtil;
 
     public Member saveUserInfo(SaveUserLoginInfoDto dto) {
         if (!dto.getUserPassword().equals(dto.getCheckedPassword())) {
@@ -63,58 +63,85 @@ public class MemberService {
     }
 
 
-//    // 사용자 정보 확인
-//    public boolean validateMember(String email, String username, String birth, String phone) {
-//        LocalDate birthDate = LocalDate.parse(birth);
-//
-//        // 평문을 암호화해서 비교
-//        String encryptedPhone = cryptoUtil.encrypt(phone);
-//
-//        return memberRepository.findByEmailAndUsernameAndBirthAndPhoneNumber(
-//                email, username, birthDate, encryptedPhone
-//        ).isPresent();
-//    }
 
 
-    // 비밀번호 재설정
+
     public String issueResetToken(String email, String username, String birth, String phone) {
         LocalDate birthDate = LocalDate.parse(birth);
         String encryptedPhone = cryptoUtil.encrypt(phone);
 
-        Optional<Member> optionalMember = memberRepository.findByEmailAndUsernameAndBirthAndPhoneNumber(
-                email, username, birthDate, encryptedPhone
-        );
+        Member member = memberRepository
+                .findByEmailAndUsernameAndBirthAndPhoneNumber(email, username, birthDate, encryptedPhone)
+                .orElseThrow(() ->
+                        new UserNotFoundException("입력한 정보와 일치하는 사용자가 없습니다.")
+                );
 
-        if (optionalMember.isEmpty()) return null;
-
-        Member member = optionalMember.get();
-        String token = UUID.randomUUID().toString();
-        member.setResetToken(token);
-        // 10분 지난 토큰 무효처리
-        member.setResetTokenExpiry(LocalDateTime.now().plusMinutes(10));
-        memberRepository.save(member);
-
-        return token;
+        return jwtUtil.generateResetToken(member.getId(), member.getEmail());
     }
 
-    public boolean resetPasswordByToken(String token, String newPassword, String checkedPassword) {
-        if (!newPassword.equals(checkedPassword))
-            throw new IllegalArgumentException("PasswordMismatch");
 
-        Optional<Member> optionalMember = memberRepository.findByResetToken(token);
-        if (optionalMember.isEmpty()) return false;
+    // 로그인 안했을 때 비번 변경
+    public void resetPasswordByToken(String token, String newPassword, String checkedPassword) {
 
-        Member member = optionalMember.get();
-
-        if (member.getResetTokenExpiry() == null || member.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
-            return false; // 만료된 토큰
+        if (!jwtUtil.validateResetToken(token)) {
+            throw new InvalidTokenException("유효하지 않거나 만료된 토큰입니다.");
         }
 
-        member.setPassword(passwordEncoder.encode(newPassword));
-        member.setResetToken(null);
-        memberRepository.save(member);
-        return true;
+        Long userId = Long.valueOf(jwtUtil.getUserIdFromToken(token));
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        validateAndUpdatePassword(member, newPassword, checkedPassword);
     }
+    // 로그인 했을 때 비번 변경
+    public void changePassword(Long userId, String currentPassword, String newPassword, String checkedPassword) {
+
+        Member member = memberRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+
+        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
+            throw new InvalidPasswordException("현재 비밀번호가 올바르지 않습니다.");
+        }
+
+        validateAndUpdatePassword(member, newPassword, checkedPassword);
+    }
+
+
+    //비번변경 로직
+    private void validateAndUpdatePassword(Member member, String newPassword, String checkedPassword) {
+
+        if (!newPassword.equals(checkedPassword)) {
+            throw new PasswordMismatchException("비밀번호 확인이 일치하지 않습니다.");
+        }
+
+        if (passwordEncoder.matches(newPassword, member.getPassword())) {
+            throw new SamePasswordException("현재 비밀번호와 동일한 비밀번호는 사용할 수 없습니다.");
+        }
+
+        List<PasswordHistory> historyList =
+                passwordHistoryRepository.findTop5ByMemberOrderByCreatedAtDesc(member);
+
+        for (PasswordHistory history : historyList) {
+            if (passwordEncoder.matches(newPassword, history.getPassword())) {
+                throw new SamePasswordException("최근 사용한 비밀번호는 다시 사용할 수 없습니다.");
+            }
+        }
+
+        passwordHistoryRepository.save(
+                PasswordHistory.builder()
+                        .member(member)
+                        .password(member.getPassword())
+                        .build()
+        );
+
+        member.setPassword(passwordEncoder.encode(newPassword));
+        memberRepository.save(member);
+    }
+
+
+
+
+
 
     @Transactional
     public String updateNickname(Long userId, String newNickname) {
