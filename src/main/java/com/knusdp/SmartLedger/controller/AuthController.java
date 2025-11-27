@@ -106,14 +106,16 @@ public class AuthController {
     @PatchMapping("/nickname")
     @SecurityRequirement(name = "bearerAuth")
     @Transactional
-    public ResponseEntity<String> updateNickname(@Valid @RequestBody ChangeNicknameDto request) {
+    public ResponseEntity<NicknameResponseDto> updateNickname(@Valid @RequestBody ChangeNicknameDto request) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-        memberService.updateNickname(userId, request.getChange_nickname());
+        String updatedNickname = memberService.updateNickname(userId, request.getChange_nickname());
 
-        return ResponseEntity.ok("닉네임 변경이 완료되었습니다.");
+        return ResponseEntity.ok(new NicknameResponseDto(updatedNickname));
     }
+
 
     //이메일 중복 확인
     @PostMapping("/check-email")

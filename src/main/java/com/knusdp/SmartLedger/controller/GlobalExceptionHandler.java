@@ -86,7 +86,7 @@ public class GlobalExceptionHandler {
         ErrorResponseDto error = new ErrorResponseDto(
                 409, // 409
                 "DATA_INTEGRITY_VIOLATION",
-                "이미 사용 중인 정보가 포함되어 있습니다. (예: 이름, 이메일, 닉네임 등)"
+                    "이미 사용 중인 정보가 포함되어 있습니다. (예: 이름, 이메일, 닉네임 등)"
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
