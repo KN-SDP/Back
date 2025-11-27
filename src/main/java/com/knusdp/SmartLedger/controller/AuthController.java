@@ -59,46 +59,49 @@ public class AuthController {
         return ResponseEntity.ok(responseDto);
     }
 
+    //로그인 중 비번 변경
+    @PatchMapping("/password")
+    @SecurityRequirement(name = "bearerAuth")
+    public ResponseEntity<?> changePassword(
+            @Valid @RequestBody ChangePasswordDto dto,
+            Authentication authentication
+    ) {
+        Long userId = Long.parseLong(authentication.getName());
+
+        memberService.changePassword(userId, dto.getCurrentPassword(), dto.getNewPassword(), dto.getCheckedPassword());
+
+        return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
+    }
+
+    //로그인 안 했을 때 비번 변경
     @PostMapping("/recover-password")
     public ResponseEntity<?> issueResetToken(@RequestBody RecoverPasswordRequestDto dto) {
-        String token = memberService.issueResetToken(dto.getEmail(), dto.getName(), dto.getBirth(), dto.getPhone());
 
-        if (token != null) {
-            return ResponseEntity.ok(Map.of(
-                    "message", "사용자 정보가 확인되었습니다. 비밀번호를 재설정해주세요.",
-                    "resetToken", token
-            ));
-        } else {
-            return ResponseEntity.status(404).body(Map.of(
-                    "error_code", "UserNotFound",
-                    "message", "입력한 정보와 일치하는 사용자가 없습니다."
-            ));
-        }
+        String resetToken = memberService.issueResetToken(
+                dto.getEmail(),
+                dto.getName(),
+                dto.getBirth(),
+                dto.getPhone()
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "사용자 정보가 확인되었습니다. 비밀번호를 재설정해주세요.",
+                "resetToken", resetToken
+        ));
     }
 
     @PostMapping("/recover-password/reset")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto dto) {
-        try {
-            boolean success = memberService.resetPasswordByToken(
-                    dto.getResetToken(),
-                    dto.getNewPassword(),
-                    dto.getCheckedPassword()
-            );
 
-            if (success) {
-                return ResponseEntity.ok(Map.of("message", "비밀번호가 성공적으로 변경되었습니다."));
-            } else {
-                return ResponseEntity.status(400).body(Map.of(
-                        "error_code", "InvalidToken",
-                        "message", "유효하지 않거나 만료된 토큰입니다."
-                ));
-            }
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "error_code", "PasswordMismatch",
-                    "message", "비밀번호 확인이 일치하지 않습니다."
-            ));
-        }
+        memberService.resetPasswordByToken(
+                dto.getResetToken(),
+                dto.getNewPassword(),
+                dto.getCheckedPassword()
+        );
+
+        return ResponseEntity.ok(Map.of(
+                "message", "비밀번호가 성공적으로 변경되었습니다."
+        ));
     }
 
 
@@ -106,14 +109,16 @@ public class AuthController {
     @PatchMapping("/nickname")
     @SecurityRequirement(name = "bearerAuth")
     @Transactional
-    public ResponseEntity<String> updateNickname(@Valid @RequestBody ChangeNicknameDto request) {
+    public ResponseEntity<NicknameResponseDto> updateNickname(@Valid @RequestBody ChangeNicknameDto request) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Long userId = Long.parseLong(authentication.getName());
 
-        memberService.updateNickname(userId, request.getChange_nickname());
+        String updatedNickname = memberService.updateNickname(userId, request.getChange_nickname());
 
-        return ResponseEntity.ok("닉네임 변경이 완료되었습니다.");
+        return ResponseEntity.ok(new NicknameResponseDto(updatedNickname));
     }
+
 
     //이메일 중복 확인
     @PostMapping("/check-email")

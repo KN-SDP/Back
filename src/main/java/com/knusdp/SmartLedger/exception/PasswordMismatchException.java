@@ -1,0 +1,7 @@
+package com.knusdp.SmartLedger.exception;
+
+public class PasswordMismatchException extends RuntimeException {
+    public PasswordMismatchException(String message) {
+        super(message);
+    }
+}

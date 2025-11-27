@@ -6,6 +6,10 @@ import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.exception.*;
 import com.knusdp.SmartLedger.exception.asset.AssetNotFoundException;
 import com.knusdp.SmartLedger.exception.asset.InvalidDateRangeException;
+import com.knusdp.SmartLedger.exception.budget.BudgetAlreadyExistsException;
+import com.knusdp.SmartLedger.exception.budget.BudgetNotFoundException;
+import com.knusdp.SmartLedger.exception.budget.CategoryNotFoundException;
+import com.knusdp.SmartLedger.exception.budget.NoBudgetEntriesException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -82,7 +86,7 @@ public class GlobalExceptionHandler {
         ErrorResponseDto error = new ErrorResponseDto(
                 409, // 409
                 "DATA_INTEGRITY_VIOLATION",
-                "이미 사용 중인 정보가 포함되어 있습니다. (예: 이름, 이메일, 닉네임 등)"
+                    "이미 사용 중인 정보가 포함되어 있습니다. (예: 이름, 이메일, 닉네임 등)"
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
@@ -191,6 +195,75 @@ public class GlobalExceptionHandler {
                 "message", e.getMessage()
         ));
     }
+
+
+
+    //Budget 예외
+    @ExceptionHandler(CategoryNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleCategoryNotFoundException(CategoryNotFoundException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                404,
+                "CATEGORY_NOT_FOUND",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BudgetAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponseDto> handleBudgetAlreadyExistsException(BudgetAlreadyExistsException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                409,
+                "BUDGET_ALREADY_EXISTS",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(NoBudgetEntriesException.class)
+    public ResponseEntity<ErrorResponseDto> handleNoBudgetEntriesException(NoBudgetEntriesException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                404,
+                "NO_BUDGET_ENTRIES",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BudgetNotFoundException.class)
+    public ResponseEntity<ErrorResponseDto> handleBudgetNotFound(BudgetNotFoundException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                404,
+                "BUDGET_NOT_FOUND",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
+
+    //비번 토큰 다르면
+    @ExceptionHandler(InvalidTokenException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidToken(InvalidTokenException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponseDto(400, "INVALID_TOKEN", ex.getMessage())
+        );
+    }
+    //비번 재설정 다르면
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ErrorResponseDto> handlePasswordMismatch(PasswordMismatchException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(
+                new ErrorResponseDto(400, "PASSWORD_MISMATCH", ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<ErrorResponseDto> handleInvalidCurrentPasswordException(InvalidPasswordException ex) {
+        ErrorResponseDto error = new ErrorResponseDto(
+                400,
+                "INVALID_CURRENT_PASSWORD",
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
 
 
 

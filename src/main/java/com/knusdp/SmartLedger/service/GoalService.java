@@ -15,7 +15,9 @@ import com.knusdp.SmartLedger.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,23 +28,40 @@ public class GoalService {
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
     private final GoalRepository goalRepository;
+    private final S3UploadService s3UploadService;
 
     @Transactional
-    public Goal createGoal(Long memberId, CreateGoalRequestDto dto) {
-        // 사용자 조회 (없으면 UserNotFoundException 발생)
-        Member member = memberRepository.findById(memberId)
+    public Goal createGoal(Long userId, CreateGoalRequestDto dto) {
+
+        // 1. 사용자 조회
+        Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
 
+        String imageUrl = null;
+
+        // 2. 이미지가 있는 경우에만 업로드
+        if (dto.getImage() != null && !dto.getImage().isEmpty()) {
+            try {
+                imageUrl = s3UploadService.saveFile(dto.getImage());
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 업로드에 실패했습니다.", e);
+            }
+        }
+
+        // 3. Goal Entity 생성
         Goal newGoal = Goal.builder()
                 .title(dto.getTitle())
-                .imageUrl(dto.getImageUrl())
                 .targetAmount(dto.getTargetAmount())
                 .deadline(dto.getDeadline())
+                .imageUrl(imageUrl)  // 이미지 없으면 그냥 null 저장됨
                 .member(member)
                 .build();
 
+        // 4. 저장 후 반환
         return goalRepository.save(newGoal);
     }
+
+
     public List<GoalResponseDto> findGoalsByMemberId(Long memberId) {
         // 1. 리포지토리 호출하여 특정 사용자의 목표 목록 조회
         List<Goal> goals = goalRepository.findByMember_IdOrderByCreatedAtDesc(memberId);
