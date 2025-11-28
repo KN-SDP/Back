@@ -38,6 +38,14 @@ public class Member {
     @Column(nullable = false)
     private LocalDate birth; // 생년월일
 
+
+    @Column(name = "deleted", nullable = false)
+    private Boolean deleted = false;
+
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

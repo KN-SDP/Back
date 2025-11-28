@@ -1,6 +1,7 @@
 package com.knusdp.SmartLedger.config;
 
 import com.knusdp.SmartLedger.entity.Member;
+import com.knusdp.SmartLedger.exception.auth.AccountDeletedException;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import com.knusdp.SmartLedger.util.JwtUtil;
 import jakarta.servlet.ServletException;
@@ -38,6 +39,23 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         // 1. 기존 회원인 경우 (Member 객체가 있음) -> 로그인 처리
         if (attributes.containsKey("member")) {
             Member member = (Member) attributes.get("member");
+
+           // 탈퇴한 계정이면 예외 던짐
+            if (Boolean.TRUE.equals(member.getDeleted())) {
+                log.warn("❌ 탈퇴된 소셜 계정 로그인 시도: {}", member.getEmail());
+
+                // JSON Response 직접 작성
+                response.setStatus(HttpServletResponse.SC_CONFLICT);
+                response.setContentType("application/json; charset=UTF-8");
+
+                String body = String.format(
+                        "{\"statusCode\":409,\"errorCode\":\"ACCOUNT_DELETED\",\"message\":\"탈퇴된 계정입니다. 14일 이내 복구가 가능합니다.\",\"email\":\"%s\"}",
+                        member.getEmail()
+                );
+
+                response.getWriter().write(body);
+                return;
+            }
             String token = jwtUtil.generateToken(member); // 로그인용 Access Token
 
             String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth-redirect")
