@@ -5,6 +5,7 @@ import com.knusdp.SmartLedger.dto.ErrorResponseDto;
 import com.knusdp.SmartLedger.exception.*;
 import com.knusdp.SmartLedger.exception.asset.AssetNotFoundException;
 import com.knusdp.SmartLedger.exception.asset.InvalidDateRangeException;
+import com.knusdp.SmartLedger.exception.auth.AccountDeletedException;
 import com.knusdp.SmartLedger.exception.budget.BudgetAlreadyExistsException;
 import com.knusdp.SmartLedger.exception.budget.BudgetNotFoundException;
 import com.knusdp.SmartLedger.exception.budget.CategoryNotFoundException;
@@ -282,4 +283,15 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+    @ExceptionHandler(AccountDeletedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAccountDeletedException(AccountDeletedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponseDto(
+                        409,
+                        "ACCOUNT_DELETED",
+                        ex.getMessage()
+                )
+        );
+    }
+
 }

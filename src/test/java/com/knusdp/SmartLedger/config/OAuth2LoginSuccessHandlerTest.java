@@ -57,6 +57,7 @@ class OAuth2LoginSuccessHandlerTest {
                 .password("testpass")
                 .phoneNumber("000") // NOT NULL 필드 채우기
                 .loginType(LoginType.LOCAL) // NOT NULL 필드 채우기
+                .deleted(false)
                 .birth(LocalDate.now()) // NOT NULL 필드 채우기
                 .build();
         memberRepository.save(testMember);
