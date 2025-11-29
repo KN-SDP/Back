@@ -285,12 +285,13 @@ public class GlobalExceptionHandler {
     }
     @ExceptionHandler(AccountDeletedException.class)
     public ResponseEntity<ErrorResponseDto> handleAccountDeletedException(AccountDeletedException ex) {
-        ErrorResponseDto error = new ErrorResponseDto(
-                409,
-                "ACCOUNT_DELETED",
-                ex.getMessage()
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponseDto(
+                        409,
+                        "ACCOUNT_DELETED",
+                        ex.getMessage()
+                )
         );
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 
 }

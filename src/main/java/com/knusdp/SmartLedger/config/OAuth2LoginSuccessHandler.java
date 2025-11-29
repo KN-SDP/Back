@@ -44,17 +44,10 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
             if (Boolean.TRUE.equals(member.getDeleted())) {
                 log.warn("❌ 탈퇴된 소셜 계정 로그인 시도: {}", member.getEmail());
 
-                // JSON Response 직접 작성
-                response.setStatus(HttpServletResponse.SC_CONFLICT);
-                response.setContentType("application/json; charset=UTF-8");
-
-                String body = String.format(
-                        "{\"statusCode\":409,\"errorCode\":\"ACCOUNT_DELETED\",\"message\":\"탈퇴된 계정입니다. 14일 이내 복구가 가능합니다.\",\"email\":\"%s\"}",
-                        member.getEmail()
+                throw new AccountDeletedException(
+                        String.format("탈퇴된 계정입니다. 14일 이내 복구가 가능합니다. [%s]", member.getEmail())
                 );
 
-                response.getWriter().write(body);
-                return;
             }
             String token = jwtUtil.generateToken(member); // 로그인용 Access Token
 

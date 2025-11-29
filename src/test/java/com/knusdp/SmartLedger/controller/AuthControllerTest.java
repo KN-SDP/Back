@@ -64,6 +64,7 @@ class AuthControllerTest {
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("encrypted_01012345678")
                 .loginType(LoginType.LOCAL) // ★ 필수 추가
+                .deleted(false)
                 .birth(LocalDate.parse("2000-01-01"))
                 .nickname("테스트닉네임")
                 .build();
@@ -91,6 +92,7 @@ class AuthControllerTest {
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("encrypted_01012345678")
                 .loginType(LoginType.LOCAL) // ★ 필수 추가
+                .deleted(false)
                 .birth(LocalDate.parse("2000-01-01"))
                 .nickname("테스트닉네임1")
                 .build();
@@ -124,6 +126,7 @@ class AuthControllerTest {
                 .password(passwordEncoder.encode("123456"))
                 .phoneNumber("encrypted_01011112222")
                 .loginType(LoginType.LOCAL) // ★ 필수 추가
+                .deleted(false)
                 .birth(LocalDate.parse("1995-01-01"))
                 .nickname("recoverTest")
                 .build();
