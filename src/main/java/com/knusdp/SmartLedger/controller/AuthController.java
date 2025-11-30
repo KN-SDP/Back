@@ -140,4 +140,26 @@ public class AuthController {
                 "message", "프로필 정보가 성공적으로 업데이트되었습니다."
         ));
     }
+
+    //회원탈퇴 소프트삭제
+    @PatchMapping("/withdraw")
+    @SecurityRequirement(name = "bearerAuth")
+    @Transactional
+    public ResponseEntity<Map<String, String>> withdraw(@RequestBody WithdrawRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = Long.parseLong(authentication.getName());
+
+        authService.withdraw(userId, request.currentPassword());
+    return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다. 14일 이내 복구가 가능합니다."));
+    }
+
+    //계정 복구
+    @PatchMapping("/restore")
+    public ResponseEntity<Map<String, String>> restoreAccount(@RequestBody RestoreRequest request) {
+        authService.restoreAccount(request.email());
+        return ResponseEntity.ok(Map.of(
+                "message", "계정 복구가 완료되었습니다. 다시 로그인해주세요."
+        ));
+    }
+
 }

@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
@@ -151,6 +152,11 @@ public class MemberService {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
 
+        // 기존과 동일한 닉네임이면 예외
+        if (member.getNickname().equals(newNickname)) {
+            throw new DuplicateOriginalNicknameException("기존 닉네임과 동일합니다.");
+        }
+
         memberRepository.findByNickname(newNickname)
                 .ifPresent(existing -> {
                     if (!existing.getId().equals(member.getId())) {
@@ -159,8 +165,9 @@ public class MemberService {
                 });
 
         member.setNickname(newNickname);
-        return member.getNickname(); // 변경된 닉네임 반환
+        return member.getNickname();
     }
+
 
     public Member findOrCreateSocialUser(String provider, String providerId, String email, String name) {
         // 1. 이미 가입된 회원인지 확인 (ProviderId 또는 Email로)
@@ -175,7 +182,6 @@ public class MemberService {
             existingMember.setLoginType(LoginType.valueOf(provider.toUpperCase()));
             return memberRepository.save(existingMember);
         }
-
         // 2. 신규 회원이면 DB에 저장하지 않고 null 반환
         return null;
     }
@@ -208,6 +214,7 @@ public class MemberService {
         memberToUpdate.setBirth(dto.getBirth());
         memberToUpdate.setPhoneNumber(encryptedPhone);
     }
+
 
     public boolean isEmailAvailable(String email) {
         return !memberRepository.existsByEmail(email);

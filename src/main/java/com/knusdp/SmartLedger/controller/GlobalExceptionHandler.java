@@ -5,6 +5,7 @@ import com.knusdp.SmartLedger.dto.ErrorResponseDto;
 import com.knusdp.SmartLedger.exception.*;
 import com.knusdp.SmartLedger.exception.asset.AssetNotFoundException;
 import com.knusdp.SmartLedger.exception.asset.InvalidDateRangeException;
+import com.knusdp.SmartLedger.exception.auth.AccountDeletedException;
 import com.knusdp.SmartLedger.exception.budget.BudgetAlreadyExistsException;
 import com.knusdp.SmartLedger.exception.budget.BudgetNotFoundException;
 import com.knusdp.SmartLedger.exception.budget.CategoryNotFoundException;
@@ -256,7 +257,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidPasswordException.class)
     public ResponseEntity<ErrorResponseDto> handleInvalidCurrentPasswordException(InvalidPasswordException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
-                400,
+                401,
                 "INVALID_CURRENT_PASSWORD",
                 ex.getMessage()
         );
@@ -273,6 +274,39 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ErrorResponseDto> handleIllegalStateException(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponseDto(
+                        409,
+                        "ILLEGAL_STATE",
+                        ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(AlreadyDeletedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAlreadyDeletedException(AlreadyDeletedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponseDto(
+                        409,
+                        "ACCOUNT_ALREADY_DELETED",
+                        ex.getMessage()
+                )
+        );
+    }
+
+    @ExceptionHandler(SamePasswordException.class)
+    public ResponseEntity<ErrorResponseDto> handleSamePasswordException(SamePasswordException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponseDto(
+                        409,
+                        "SAME_PASSWORD_ERROR",
+                        ex.getMessage()
+                )
+        );
+    }
     @ExceptionHandler(AccountDuplicatedException.class)
     public ResponseEntity<ErrorResponseDto> handleAccountDuplicatedException(AccountDuplicatedException ex) {
         ErrorResponseDto error = new ErrorResponseDto(
@@ -282,4 +316,15 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
+    @ExceptionHandler(AccountDeletedException.class)
+    public ResponseEntity<ErrorResponseDto> handleAccountDeletedException(AccountDeletedException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(
+                new ErrorResponseDto(
+                        409,
+                        "ACCOUNT_DELETED",
+                        ex.getMessage()
+                )
+        );
+    }
+
 }
