@@ -64,7 +64,7 @@ public class AuthService {
     }
 
     //회원 탈퇴 소프트삭제
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void withdraw(Long userId, String currentPassword) {
         Member member = memberRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("사용자 정보를 찾을 수 없습니다."));
