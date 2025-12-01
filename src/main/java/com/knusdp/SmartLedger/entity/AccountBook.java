@@ -52,4 +52,9 @@ public class AccountBook {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "categoryId", nullable = false)
     private AccountCategory category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goalId", nullable = true)
+    private Goal goal;
+
 }
