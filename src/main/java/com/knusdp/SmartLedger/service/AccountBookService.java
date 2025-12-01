@@ -31,7 +31,7 @@ public class AccountBookService {
     
     //거래내역 생성
     @Transactional
-    public void createLedgerEntry(Long memberId, CreateAccountDto dto){
+    public void createLedgerEntry(Long memberId, CreateAccountDto dto) {
         if (dto.getDate() == null || dto.getDescription() == null ||
                 dto.getAmount() == null || dto.getTransactionType() == null ||
                 dto.getPaymentType() == null || dto.getCategoryId() == null) {
@@ -54,6 +54,12 @@ public class AccountBookService {
         AccountCategory category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("카테고리를 찾을 수 없습니다."));
 
+        Goal goal = null;
+        if (dto.getGoalId() != null) {
+            goal = goalRepository.findById(dto.getGoalId())
+                    .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+        }
+
         AccountBook accountBook = AccountBook.builder()
                 .transactionDate(dto.getDate())
                 .description(dto.getDescription())
@@ -62,13 +68,14 @@ public class AccountBookService {
                 .paymentType(dto.getPaymentType())
                 .category(category)
                 .member(member)
+                .goal(goal)
                 .build();
 
         accountBookRepository.save(accountBook);
 
         // SAVING + goalId 존재 시 목표 금액 증가
         if (dto.getTransactionType() == TransactionType.SAVING && dto.getGoalId() != null) {
-            Goal goal = goalRepository.findById(dto.getGoalId())
+            goal = goalRepository.findById(dto.getGoalId())
                     .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
 
             goal.setCurrentAmount(goal.getCurrentAmount().add(dto.getAmount()));
@@ -193,23 +200,20 @@ public class AccountBookService {
         AccountBook entryToDelete = accountBookRepository.findByMemberIdAndTransactionId(memberId, transactionId)
                 .orElseThrow(() -> new LedgerEntryNotFoundException("해당 가계부 내역을 찾을 수 없습니다."));
 
+        Goal goal = entryToDelete.getGoal();
 
-        // 목표 연동된 거래라면 롤백 처리
-        if (entryToDelete.getGoal() != null && entryToDelete.getTransactionType() == TransactionType.SAVING) {
+        // 목표 연동된 SAVING 거래라면 currentAmount 감소
+        if (goal != null && entryToDelete.getTransactionType() == TransactionType.SAVING) {
 
-            Goal goal = entryToDelete.getGoal();
+            BigDecimal updatedAmount = goal.getCurrentAmount().subtract(entryToDelete.getAmount());
+            goal.setCurrentAmount(updatedAmount);
 
-            // currentAmount 감소 처리
-            goal.setCurrentAmount(
-                    goal.getCurrentAmount().subtract(entryToDelete.getAmount())
-            );
-
-            // 목표 상태 자동 변경: 달성했다가 삭제해서 바뀌는 경우
-            if (goal.getCurrentAmount().compareTo(goal.getTargetAmount()) < 0) {
+            if (updatedAmount.compareTo(goal.getTargetAmount()) >= 0) {
+                goal.setStatus(GoalStatus.COMPLETED);
+            } else {
                 goal.setStatus(GoalStatus.ONGOING);
             }
         }
-
 
         accountBookRepository.delete(entryToDelete);
     }
