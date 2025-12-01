@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -23,6 +25,7 @@ public class LedgerResponseDto {
     private PaymentType paymentType;
     private String category; // 카테고리 이름을 String으로 전달
     private Long goalId;
+    private LocalDateTime createAt;
 
     // 엔티티를 DTO로 변환하는 생성자
     public LedgerResponseDto(AccountBook accountBook) {
@@ -33,6 +36,7 @@ public class LedgerResponseDto {
         this.type = accountBook.getTransactionType();
         this.paymentType = accountBook.getPaymentType();
         this.category = accountBook.getCategory().getCategoryName(); // 연관된 카테고리 객체에서 이름만 추출
+        this.createAt = accountBook.getCreatedAt();
         if (accountBook.getGoal() != null) {
             this.goalId = accountBook.getGoal().getGoalId();
         } else {

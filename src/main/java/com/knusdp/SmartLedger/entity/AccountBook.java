@@ -57,4 +57,8 @@ public class AccountBook {
     @JoinColumn(name = "goalId", nullable = true)
     private Goal goal;
 
+    @CreationTimestamp // INSERT 시 자동으로 현재 시간 저장
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt; // 생성일
+
 }
