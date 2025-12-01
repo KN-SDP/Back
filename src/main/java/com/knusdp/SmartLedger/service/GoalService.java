@@ -1,15 +1,14 @@
 package com.knusdp.SmartLedger.service;
 
-import com.knusdp.SmartLedger.dto.CreateGoalRequestDto;
-import com.knusdp.SmartLedger.dto.GoalResponseDto;
+import com.knusdp.SmartLedger.dto.goal.CreateGoalRequestDto;
+import com.knusdp.SmartLedger.dto.goal.GoalResponseDto;
 import com.knusdp.SmartLedger.dto.UpdateGoalRequestDto;
 import com.knusdp.SmartLedger.entity.Goal;
 import com.knusdp.SmartLedger.entity.GoalStatus;
 import com.knusdp.SmartLedger.entity.Member;
 import com.knusdp.SmartLedger.exception.GoalNotFoundException;
 import com.knusdp.SmartLedger.exception.UserNotFoundException;
-import com.knusdp.SmartLedger.repository.AccountBookRepository;
-import com.knusdp.SmartLedger.repository.CategoryRepository;
+import com.knusdp.SmartLedger.exception.asset.InvalidDateRangeException;
 import com.knusdp.SmartLedger.repository.GoalRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import jakarta.validation.ConstraintViolation;
@@ -17,7 +16,6 @@ import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,6 +46,12 @@ public class GoalService {
             throw new IllegalArgumentException(errorMessage);
         }
 
+        if (dto.getStartDate() != null && dto.getDeadline() != null) {
+            if (dto.getStartDate().isAfter(dto.getDeadline())) {
+                throw new InvalidDateRangeException("시작일은 마감일보다 늦을 수 없습니다.");
+            }
+        }
+
         // 3. 이미지 업로드(있을 때만)
         String imageUrl = null;
         if (dto.getImage() != null && !dto.getImage().isEmpty()) {
@@ -62,6 +66,7 @@ public class GoalService {
         Goal goal = Goal.builder()
                 .title(dto.getTitle())
                 .targetAmount(dto.getTargetAmount())
+                .startDate(dto.getStartDate())
                 .deadline(dto.getDeadline())
                 .imageUrl(imageUrl)
                 .member(member)
@@ -97,6 +102,13 @@ public class GoalService {
         Goal goalToUpdate = goalRepository.findByMember_IdAndGoalId(memberId, goalId)
                 .orElseThrow(() -> new GoalNotFoundException("해당 목표를 찾을 수 없습니다."));
 
+
+        if (dto.getStartDate() != null && dto.getDeadline() != null) {
+            if (dto.getStartDate().isAfter(dto.getDeadline())) {
+                throw new InvalidDateRangeException("시작일은 마감일보다 늦을 수 없습니다.");
+            }
+        }
+
         // 2. DTO에 값이 있는 필드만 선택적으로 업데이트
         if (dto.getTitle() != null) {
             goalToUpdate.setTitle(dto.getTitle());
@@ -109,6 +121,9 @@ public class GoalService {
         }
         if (dto.getCurrentAmount() != null) {
             goalToUpdate.setCurrentAmount(dto.getCurrentAmount());
+        }
+        if (dto.getStartDate() != null) {
+            goalToUpdate.setDeadline(dto.getDeadline());
         }
         if (dto.getDeadline() != null) {
             goalToUpdate.setDeadline(dto.getDeadline());
@@ -123,6 +138,7 @@ public class GoalService {
                 goalToUpdate.getCurrentAmount().compareTo(goalToUpdate.getTargetAmount()) >= 0) {
             goalToUpdate.setStatus(GoalStatus.COMPLETED);
         }
+
 
         // @Transactional에 의해 변경된 내용이 자동으로 DB에 저장됨 (Dirty Checking)
         // DTO로 변환하여 반환 (업데이트된 updatedAt 시간 포함)

@@ -1,4 +1,4 @@
-package com.knusdp.SmartLedger.dto;
+package com.knusdp.SmartLedger.dto.goal;
 
 import com.knusdp.SmartLedger.entity.Goal;
 import com.knusdp.SmartLedger.entity.GoalStatus;
@@ -15,6 +15,7 @@ public class GoalResponseDto {
     private String title;
     private BigDecimal targetAmount;
     private BigDecimal currentAmount;
+    private LocalDate startDate;
     private LocalDate deadline;
     private BigDecimal progressRate;
     private String imageUrl;
@@ -27,6 +28,7 @@ public class GoalResponseDto {
         this.title = goal.getTitle();
         this.targetAmount = goal.getTargetAmount();
         this.currentAmount = goal.getCurrentAmount();
+        this.startDate = goal.getStartDate();
         this.deadline = goal.getDeadline();
         this.imageUrl = goal.getImageUrl();
         this.status = goal.getStatus();

@@ -22,4 +22,6 @@ public class CreateAccountDto {
     private TransactionType transactionType;
     private PaymentType paymentType;
     private Long categoryId;
+    private Long goalId;
+
 }

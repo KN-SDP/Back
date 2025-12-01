@@ -35,6 +35,9 @@ public class Goal {
     private BigDecimal currentAmount = BigDecimal.ZERO; // 현재 달성 금액
 
     @Column(nullable = false)
+    private LocalDate startDate; // 시작일
+
+    @Column(nullable = false)
     private LocalDate deadline; // 마감일
 
     @Builder.Default // 기본 상태 설정
