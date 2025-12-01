@@ -4,15 +4,13 @@ import com.knusdp.SmartLedger.dto.CreateAccountDto;
 import com.knusdp.SmartLedger.dto.LedgerResponseDto;
 import com.knusdp.SmartLedger.dto.LedgerSearchRequestDto;
 import com.knusdp.SmartLedger.dto.UpdateLedgerRequestDto;
-import com.knusdp.SmartLedger.entity.AccountBook;
-import com.knusdp.SmartLedger.entity.AccountCategory;
-import com.knusdp.SmartLedger.entity.Member;
-import com.knusdp.SmartLedger.entity.TransactionType;
+import com.knusdp.SmartLedger.entity.*;
 import com.knusdp.SmartLedger.exception.InvalidAmountException;
 import com.knusdp.SmartLedger.exception.LedgerEntryNotFoundException;
 import com.knusdp.SmartLedger.exception.MissingRequiredFieldException;
 import com.knusdp.SmartLedger.repository.CategoryRepository;
 import com.knusdp.SmartLedger.repository.AccountBookRepository;
+import com.knusdp.SmartLedger.repository.GoalRepository;
 import com.knusdp.SmartLedger.repository.MemberRepository;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +27,7 @@ public class AccountBookService {
     private final AccountBookRepository accountBookRepository;
     private final MemberRepository memberRepository;
     private final CategoryRepository categoryRepository;
+    private final GoalRepository goalRepository;
     
     //거래내역 생성
     @Transactional
@@ -66,6 +65,18 @@ public class AccountBookService {
                 .build();
 
         accountBookRepository.save(accountBook);
+
+        // SAVING + goalId 존재 시 목표 금액 증가
+        if (dto.getTransactionType() == TransactionType.SAVING && dto.getGoalId() != null) {
+            Goal goal = goalRepository.findById(dto.getGoalId())
+                    .orElseThrow(() -> new RuntimeException("목표를 찾을 수 없습니다."));
+
+            goal.setCurrentAmount(goal.getCurrentAmount().add(dto.getAmount()));
+
+            if (goal.getCurrentAmount().compareTo(goal.getTargetAmount()) >= 0) {
+                goal.setStatus(GoalStatus.COMPLETED);
+            }
+        }
     }
     //통합 조회
     @Transactional(readOnly = true)
