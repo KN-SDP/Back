@@ -1,12 +1,11 @@
 package com.knusdp.SmartLedger.controller;
 
-import com.knusdp.SmartLedger.dto.CreateGoalRequestDto;
-import com.knusdp.SmartLedger.dto.GoalResponseDto;
+import com.knusdp.SmartLedger.dto.goal.CreateGoalRequestDto;
+import com.knusdp.SmartLedger.dto.goal.GoalResponseDto;
 import com.knusdp.SmartLedger.dto.UpdateGoalRequestDto;
 import com.knusdp.SmartLedger.service.GoalService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Valid;
 import jakarta.validation.Validator;
 import lombok.RequiredArgsConstructor;
@@ -16,13 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/goals")

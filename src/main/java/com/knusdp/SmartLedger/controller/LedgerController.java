@@ -1,9 +1,9 @@
 package com.knusdp.SmartLedger.controller;
 
 import com.knusdp.SmartLedger.dto.CreateAccountDto;
-import com.knusdp.SmartLedger.dto.LedgerResponseDto;
+import com.knusdp.SmartLedger.dto.accountBook.LedgerResponseDto;
 import com.knusdp.SmartLedger.dto.LedgerSearchRequestDto;
-import com.knusdp.SmartLedger.dto.UpdateLedgerRequestDto;
+import com.knusdp.SmartLedger.dto.accountBook.UpdateLedgerRequestDto;
 import com.knusdp.SmartLedger.entity.TransactionType;
 import com.knusdp.SmartLedger.service.AccountBookService;
 import com.knusdp.SmartLedger.service.FindInFoService;

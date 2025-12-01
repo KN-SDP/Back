@@ -1,4 +1,4 @@
-package com.knusdp.SmartLedger.dto;
+package com.knusdp.SmartLedger.dto.accountBook;
 
 import com.knusdp.SmartLedger.entity.AccountBook;
 import com.knusdp.SmartLedger.entity.PaymentType;
@@ -22,6 +22,7 @@ public class LedgerResponseDto {
     private TransactionType type;
     private PaymentType paymentType;
     private String category; // 카테고리 이름을 String으로 전달
+    private Long goalId;
 
     // 엔티티를 DTO로 변환하는 생성자
     public LedgerResponseDto(AccountBook accountBook) {
@@ -32,5 +33,10 @@ public class LedgerResponseDto {
         this.type = accountBook.getTransactionType();
         this.paymentType = accountBook.getPaymentType();
         this.category = accountBook.getCategory().getCategoryName(); // 연관된 카테고리 객체에서 이름만 추출
+        if (accountBook.getGoal() != null) {
+            this.goalId = accountBook.getGoal().getGoalId();
+        } else {
+            this.goalId = null;
+        }
     }
 }

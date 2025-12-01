@@ -1,4 +1,4 @@
-package com.knusdp.SmartLedger.dto;
+package com.knusdp.SmartLedger.dto.accountBook;
 
 import com.knusdp.SmartLedger.entity.PaymentType;
 import com.knusdp.SmartLedger.entity.TransactionType;
@@ -15,4 +15,5 @@ public class UpdateLedgerRequestDto {
     private TransactionType transactionType;
     private PaymentType paymentType;
     private Long categoryId;
+    private Long goalId;
 }
