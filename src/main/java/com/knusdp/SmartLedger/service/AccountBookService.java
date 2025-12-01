@@ -193,6 +193,24 @@ public class AccountBookService {
         AccountBook entryToDelete = accountBookRepository.findByMemberIdAndTransactionId(memberId, transactionId)
                 .orElseThrow(() -> new LedgerEntryNotFoundException("해당 가계부 내역을 찾을 수 없습니다."));
 
+
+        // 목표 연동된 거래라면 롤백 처리
+        if (entryToDelete.getGoal() != null && entryToDelete.getTransactionType() == TransactionType.SAVING) {
+
+            Goal goal = entryToDelete.getGoal();
+
+            // currentAmount 감소 처리
+            goal.setCurrentAmount(
+                    goal.getCurrentAmount().subtract(entryToDelete.getAmount())
+            );
+
+            // 목표 상태 자동 변경: 달성했다가 삭제해서 바뀌는 경우
+            if (goal.getCurrentAmount().compareTo(goal.getTargetAmount()) < 0) {
+                goal.setStatus(GoalStatus.ONGOING);
+            }
+        }
+
+
         accountBookRepository.delete(entryToDelete);
     }
 
