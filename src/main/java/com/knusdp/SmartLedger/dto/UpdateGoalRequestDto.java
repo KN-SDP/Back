@@ -24,6 +24,9 @@ public class UpdateGoalRequestDto {
     @DecimalMin(value = "0", message = "현재 금액은 0 이상이어야 합니다.")
     private BigDecimal currentAmount;
 
+
+    private LocalDate startDate;
+
     @FutureOrPresent(message = "마감일은 오늘 또는 미래여야 합니다.")
     private LocalDate deadline;
 
